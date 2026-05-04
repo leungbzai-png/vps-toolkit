@@ -535,7 +535,32 @@ wordpress_menu() {
 # ============================================================
 deploy_wordpress() {
     print_banner
-    echo -e "${BOLD}=== 部署 WordPress ===${NC}\n"
+    echo -e "${BOLD}=== 安装 WordPress ===${NC}\n"
+
+    # 检测是否已安装
+    if [ -f /opt/wordpress/docker-compose.yml ]; then
+        WP_RUNNING=$(docker compose -f /opt/wordpress/docker-compose.yml ps --status running 2>/dev/null | grep -c "running" || echo "0")
+        if [ "$WP_RUNNING" -gt "0" ]; then
+            warning "检测到 WordPress 已安装且正在运行"
+        else
+            warning "检测到 WordPress 已安装但未运行"
+        fi
+        echo ""
+        echo "1. 重新安装（覆盖现有配置，数据保留）"
+        echo "2. 返回"
+        read -p "请选择 [1-2]：" REINSTALL_CHOICE
+        case $REINSTALL_CHOICE in
+            1)
+                info "停止现有容器..."
+                cd /opt/wordpress && docker compose down >/dev/null 2>&1
+                ;;
+            *)
+                info "操作已取消"
+                read -p "按回车键继续..."
+                return
+                ;;
+        esac
+    fi
 
     install_base
 
@@ -673,7 +698,32 @@ xboard_menu() {
 # ============================================================
 deploy_xboard() {
     print_banner
-    echo -e "${BOLD}=== 部署 XBoard ===${NC}\n"
+    echo -e "${BOLD}=== 安装 XBoard ===${NC}\n"
+
+    # 检测是否已安装
+    if [ -f /opt/xboard/docker-compose.yml ]; then
+        XB_RUNNING=$(docker compose -f /opt/xboard/docker-compose.yml ps --status running 2>/dev/null | grep -c "running" || echo "0")
+        if [ "$XB_RUNNING" -gt "0" ]; then
+            warning "检测到 XBoard 已安装且正在运行"
+        else
+            warning "检测到 XBoard 已安装但未运行"
+        fi
+        echo ""
+        echo "1. 重新安装（覆盖现有配置，数据保留）"
+        echo "2. 返回"
+        read -p "请选择 [1-2]：" REINSTALL_CHOICE
+        case $REINSTALL_CHOICE in
+            1)
+                info "停止现有容器..."
+                cd /opt/xboard && docker compose down >/dev/null 2>&1
+                ;;
+            *)
+                info "操作已取消"
+                read -p "按回车键继续..."
+                return
+                ;;
+        esac
+    fi
 
     install_base
 
@@ -826,7 +876,26 @@ threeui_menu() {
 # ============================================================
 deploy_3xui() {
     print_banner
-    echo -e "${BOLD}=== 部署 3x-ui ===${NC}\n"
+    echo -e "${BOLD}=== 安装 3x-ui ===${NC}\n"
+
+    # 检测是否已安装
+    if command -v x-ui >/dev/null 2>&1 || [ -d /usr/local/x-ui ]; then
+        warning "检测到 3x-ui 已安装"
+        echo ""
+        echo "1. 重新安装（覆盖现有配置）"
+        echo "2. 返回"
+        read -p "请选择 [1-2]：" REINSTALL_CHOICE
+        case $REINSTALL_CHOICE in
+            1)
+                info "继续重新安装..."
+                ;;
+            *)
+                info "操作已取消"
+                read -p "按回车键继续..."
+                return
+                ;;
+        esac
+    fi
 
     info "调用 3x-ui 官方安装脚本..."
     bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
