@@ -1008,10 +1008,12 @@ save_info() {
 # ============================================================
 detect_os() {
     if [ -f /etc/os-release ]; then
+        _SAVED_VERSION=$VERSION
         . /etc/os-release
         OS_NAME=$ID
         OS_VER=$VERSION_ID
         OS_PRETTY=$PRETTY_NAME
+        VERSION=$_SAVED_VERSION
     else
         error "无法检测系统版本"
         exit 1
@@ -2597,36 +2599,36 @@ check_update() {
 main_menu() {
     while true; do
         print_banner
-        echo -e " ${GREEN}一、核心部署${NC}"
+        echo -e " ${GREEN}$CAT_DEPLOY${NC}"
         echo -e " ${GREEN}1.${NC}  $MENU_1"
         echo -e " ${GREEN}2.${NC}  $MENU_2"
         echo -e " ${GREEN}3.${NC}  $MENU_3"
         echo -e " ${GREEN}4.${NC}  $MENU_4"
-        echo -e " ${GREEN}5.${NC}  为面板申请域名证书 (acme.sh + CF DNS)"
+        echo -e " ${GREEN}5.${NC}  $MENU_5"
         echo ""
-        echo -e " ${CYAN}二、安全管理${NC}"
+        echo -e " ${CYAN}$CAT_SECURITY${NC}"
         echo -e " ${CYAN}6.${NC}  $MENU_6"
-        echo -e " ${CYAN}7.${NC}  防火墙管理"
+        echo -e " ${CYAN}7.${NC}  $MENU_7"
         echo ""
-        echo -e " ${YELLOW}三、系统信息与检测${NC}"
-        echo -e " ${YELLOW}8.${NC}  系统信息与检测"
+        echo -e " ${YELLOW}$CAT_SYSINFO${NC}"
+        echo -e " ${YELLOW}8.${NC}  $MENU_8"
         echo ""
-        echo -e " ${PURPLE}四、Docker 管理${NC}"
+        echo -e " ${PURPLE}$CAT_DOCKER${NC}"
         echo -e " ${PURPLE}9.${NC}  $MENU_9"
         echo ""
         echo -e " ${BLUE}$CAT_BACKUP${NC}"
         echo -e " ${BLUE}10.${NC} $MENU_10"
         echo ""
-        echo -e " ${GREEN}六、网络工具${NC}"
+        echo -e " ${GREEN}$CAT_NETWORK${NC}"
         echo -e " ${GREEN}11.${NC} $MENU_11"
         echo -e " ${GREEN}12.${NC} $MENU_12"
         echo ""
-        echo -e " ${CYAN}七、系统维护${NC}"
+        echo -e " ${CYAN}$CAT_MAINTAIN${NC}"
         echo -e " ${CYAN}13.${NC} $MENU_13"
         echo -e " ${CYAN}14.${NC} $MENU_14"
         echo -e " ${CYAN}15.${NC} $MENU_15"
         echo ""
-        echo -e " ${RED}0.${NC}  退出"
+        echo -e " ${RED}0.${NC}  $MENU_0"
         print_line
         echo -e "                    ${PURPLE}by noob ra2${NC}"
         print_line
