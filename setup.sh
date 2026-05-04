@@ -160,11 +160,12 @@ check_root() {
 # ============================================================
 # 安装基础依赖
 # ============================================================
-install_base() {
+
+# 仅安装基础系统工具（用于初始化加固）
+install_base_only() {
     info "更新系统软件包..."
     $PKG_UPDATE >/dev/null 2>&1
 
-    # 安装基础工具
     case $PKG_MANAGER in
         apt)
             $PKG_INSTALL curl wget sudo openssl rsyslog >/dev/null 2>&1
@@ -177,13 +178,18 @@ install_base() {
             ;;
     esac
     success "基础工具已安装"
+}
+
+# 安装部署服务所需依赖（Docker + Nginx + Certbot）
+install_deploy_deps() {
+    install_base_only
 
     # Docker
     if [ "$DOCKER_INSTALLED" = false ]; then
         info "安装 Docker..."
         curl -fsSL https://get.docker.com | sh >/dev/null 2>&1
         systemctl enable --now docker >/dev/null 2>&1
-        apt install -y docker-compose-plugin >/dev/null 2>&1
+        $PKG_INSTALL docker-compose-plugin >/dev/null 2>&1
         DOCKER_INSTALLED=true
         success "Docker 已安装"
     else
@@ -217,6 +223,11 @@ install_base() {
     else
         success "Certbot 已安装，跳过"
     fi
+}
+
+# 兼容旧调用（部署函数用）
+install_base() {
+    install_deploy_deps
 }
 
 # ============================================================
@@ -358,7 +369,7 @@ init_vps() {
     print_banner
     echo -e "${BOLD}=== VPS 初始化加固 ===${NC}\n"
 
-    install_base
+    install_base_only
 
     # 时区设置
     echo -e "\n${CYAN}请选择时区：${NC}"
@@ -1482,3 +1493,4 @@ check_root
 detect_os
 check_installed
 main_menu
+
