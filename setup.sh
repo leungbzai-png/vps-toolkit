@@ -17,7 +17,7 @@ BOLD='\033[1m'
 
 # 版本
 VERSION="1.0.0"
-GITHUB_RAW="https://raw.githubusercontent.com/noobra2/vps-toolkit/main/setup.sh"
+GITHUB_RAW="https://raw.githubusercontent.com/leungbzai-png/vps-toolkit/refs/heads/main/setup.sh"
 
 # ============================================================
 # 工具函数
