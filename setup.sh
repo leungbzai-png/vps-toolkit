@@ -1652,7 +1652,10 @@ main_menu() {
             14) show_deploy_info ;;
             15) check_update ;;
             0)
-                echo -e "\n${GREEN}感谢使用 noob ra2 VPS 工具箱，再见！${NC}\n"
+                echo -e "\n${CYAN}╔══════════════════════════════════════════╗${NC}"
+                echo -e "${CYAN}║   感谢使用 noob ra2 VPS 工具箱           ║${NC}"
+                echo -e "${CYAN}║   愿你的服务器永远稳如磐石 🚀            ║${NC}"
+                echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}\n"
                 exit 0
                 ;;
             *)
