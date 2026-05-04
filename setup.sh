@@ -20,6 +20,933 @@ VERSION="1.0.0"
 GITHUB_RAW="https://raw.githubusercontent.com/leungbzai-png/vps-toolkit/refs/heads/main/setup.sh"
 
 # ============================================================
+# 语言包 / Language Pack
+# ============================================================
+select_language() {
+    clear
+    echo ""
+    echo "╔══════════════════════════════════════════╗"
+    echo "║         noob ra2 VPS Toolkit             ║"
+    echo "╚══════════════════════════════════════════╝"
+    echo ""
+    echo "  1. 简体中文"
+    echo "  2. 繁體中文"
+    echo "  3. English"
+    echo "  4. 日本語"
+    echo ""
+    read -p "  请选择语言 / Select Language / 言語 [1-4, default 1]: " LANG_CHOICE
+    LANG_CHOICE=${LANG_CHOICE:-1}
+    case $LANG_CHOICE in
+        2) LANG_SET="zh_tw" ;;
+        3) LANG_SET="en" ;;
+        4) LANG_SET="ja" ;;
+        *) LANG_SET="zh_cn" ;;
+    esac
+    load_language
+}
+
+load_language() {
+    case $LANG_SET in
+        zh_tw)
+            # 繁體中文
+            MSG_SUCCESS="成功"
+            MSG_ERROR="錯誤"
+            MSG_WARNING="警告"
+            MSG_INFO="資訊"
+            MSG_SECURITY="安全提示"
+            MSG_CONFIRM_YN="(y/n)"
+            MSG_PRESS_ENTER="按 Enter 繼續..."
+            MSG_CANCEL="$MSG_CANCEL"
+            MSG_BACK="返回主選單"
+            MSG_INVALID="無效選項，請重新選擇"
+            MSG_GOODBYE_1="感謝使用 noob ra2 VPS 工具箱"
+            MSG_GOODBYE_2="願你的伺服器永遠穩如磐石 🚀"
+            # Banner
+            BANNER_TITLE="noob ra2 VPS 工具箱"
+            # Main menu categories
+            CAT_DEPLOY="$CAT_DEPLOY"
+            CAT_SECURITY="$CAT_SECURITY"
+            CAT_SYSINFO="三、系統資訊與檢測"
+            CAT_DOCKER="$CAT_DOCKER"
+            CAT_BACKUP="五、備份與恢復"
+            CAT_NETWORK="六、網路工具"
+            CAT_MAINTAIN="七、系統維護"
+            # Main menu items
+            MENU_1="$MENU_1"
+            MENU_2="$MENU_2"
+            MENU_3="$MENU_3"
+            MENU_4="$MENU_4"
+            MENU_5="為面板申請域名憑證 (acme.sh + CF DNS)"
+            MENU_6="$MENU_6"
+            MENU_7="防火牆管理"
+            MENU_8="系統資訊與檢測"
+            MENU_9="$MENU_9"
+            MENU_10="備份與恢復"
+            MENU_11="安裝 WARP（解決送中）"
+            MENU_12="網路優化"
+            MENU_13="系統清理"
+            MENU_14="查看部署資訊"
+            MENU_15="檢查腳本更新"
+            MENU_0="退出"
+            MENU_PROMPT="請選擇操作 [0-15]"
+            # Init VPS
+            INIT_TITLE="VPS 初始化加固"
+            INIT_TZ_TITLE="請選擇時區"
+            INIT_TZ_1="亞洲/東京"
+            INIT_TZ_2="亞洲/上海"
+            INIT_TZ_3="UTC"
+            INIT_TZ_4="美國/紐約"
+            INIT_TZ_5="歐洲/倫敦"
+            INIT_TZ_6="自訂"
+            INIT_TZ_PROMPT="請選擇 [1-6，預設 1]"
+            INIT_TZ_CUSTOM="請輸入時區（如 Asia/Singapore）"
+            INIT_TZ_DONE="時區已設定為"
+            INIT_BBR_DONE="BBR 加速已開啟"
+            INIT_BBR_SKIP="BBR 加速已開啟，跳過"
+            INIT_RAM_DETECT="檢測到 RAM"
+            INIT_SWAP_REC="推薦 Swap"
+            INIT_SWAP_PROMPT="請輸入 Swap 大小（直接回車使用推薦值）"
+            INIT_SWAP_DONE="Swap 已設定"
+            INIT_SWAP_SKIP="Swap 已設定，跳過"
+            INIT_DNS_DONE="DNS 已優化（Google + Cloudflare）"
+            INIT_IPV4_DONE="IPv4 優先已開啟"
+            INIT_SSH_CURRENT="目前 SSH 連接埠"
+            INIT_SSH_PROMPT="請輸入新 SSH 連接埠（直接回車保持）"
+            INIT_SSH_TIP="修改 SSH 連接埠前請確認防火牆已放行新連接埠"
+            INIT_SSH_CONFIRM="確認修改 SSH 連接埠為"
+            INIT_SSH_DONE="SSH 連接埠已改為"
+            INIT_SSH_WARNING="請開啟新視窗用連接埠驗證能否登入，確認後再關閉目前視窗！"
+            INIT_DONE="$INIT_DONE"
+            # WordPress
+            WP_INSTALL_TITLE="安裝 WordPress"
+            WP_RUNNING="檢測到 WordPress 已安裝且正在運行"
+            WP_STOPPED="檢測到 WordPress 已安裝但未運行"
+            WP_REINSTALL="重新安裝（覆蓋現有設定，資料保留）"
+            WP_REINSTALL_STOP="停止現有容器..."
+            WP_STARTING="啟動 WordPress 容器..."
+            WP_STARTED="WordPress 容器已啟動"
+            WP_DONE="$WP_DONE"
+            WP_ACCESS="訪問地址"
+            WP_SAVED="帳號資訊已儲存到 /root/deploy_info.txt"
+            WP_UNINSTALL_TITLE="解除安裝 WordPress"
+            WP_NOT_FOUND="未檢測到 WordPress 安裝"
+            WP_UNINSTALL_TIP="解除安裝操作不可逆，請確認已備份重要資料"
+            WP_UNINSTALL_CONFIRM="確認解除安裝 WordPress？"
+            WP_STOP_CONTAINER="停止並刪除容器..."
+            WP_CONTAINER_STOPPED="$WP_CONTAINER_STOPPED"
+            WP_DELETE_DATA="是否同時刪除所有資料（資料庫、文章、媒體檔案）？"
+            WP_DATA_DELETED="資料已刪除"
+            WP_DATA_KEPT="容器已刪除，資料目錄保留在 /opt/wordpress"
+            WP_DOMAIN_PROMPT="請輸入 WordPress 的網域（沒有網域直接回車跳過）"
+            WP_NGINX_DELETED="Nginx 設定已刪除"
+            WP_UNINSTALL_DONE="WordPress 已解除安裝完成"
+            # XBoard
+            XB_INSTALL_TITLE="安裝 XBoard"
+            XB_RUNNING="檢測到 XBoard 已安裝且正在運行"
+            XB_STOPPED="檢測到 XBoard 已安裝但未運行"
+            XB_WAIT_DB="等待資料庫初始化..."
+            XB_WIZARD_TIP="即將進入 XBoard 安裝精靈，請按以下資訊填寫"
+            XB_DONE="$XB_DONE"
+            XB_UNINSTALL_TITLE="解除安裝 XBoard"
+            XB_NOT_FOUND="未檢測到 XBoard 安裝"
+            XB_UNINSTALL_CONFIRM="確認解除安裝 XBoard？"
+            XB_DELETE_DATA="是否同時刪除所有資料（資料庫、用戶資料）？"
+            XB_UNINSTALL_DONE="XBoard 已解除安裝完成"
+            # 3xui
+            UI_INSTALL_TITLE="安裝 3x-ui"
+            UI_RUNNING="檢測到 3x-ui 已安裝"
+            UI_DONE="$UI_DONE"
+            UI_SAVE_TIP="請記錄面板帳號密碼並儲存到 /root/deploy_info.txt"
+            UI_UNINSTALL_TITLE="解除安裝 3x-ui"
+            UI_NOT_FOUND="未檢測到 3x-ui 安裝"
+            UI_UNINSTALL_CONFIRM="確認解除安裝 3x-ui？"
+            UI_UNINSTALL_DONE="3x-ui 已解除安裝完成"
+            # SSH
+            SSH_TITLE="SSH 安全加固"
+            SSH_KEY_TITLE="植入 SSH 公鑰"
+            SSH_KEY_TIP="植入後請先驗證 Key 登入正常，再執行禁用密碼登入操作"
+            SSH_KEY_PROMPT="請貼上你的 SSH 公鑰內容（以 ssh-rsa 或 ssh-ed25519 開頭）"
+            SSH_KEY_ERR="公鑰格式不正確，應以 ssh-rsa 或 ssh-ed25519 開頭"
+            SSH_KEY_DONE="SSH 公鑰植入成功！"
+            SSH_KEY_WARN="請立即開啟新視窗測試 Key 登入是否正常，確認後再禁用密碼登入"
+            SSH_DISABLE_TITLE="禁用密碼登入"
+            SSH_NO_KEY="未檢測到 SSH 公鑰，禁止執行此操作！請先植入 SSH 公鑰並驗證 Key 登入正常後再禁用密碼"
+            SSH_DISABLE_TIP1="禁用密碼登入後，只能透過 SSH Key 登入"
+            SSH_DISABLE_TIP2="請確保已在新視窗驗證 Key 登入成功，否則將鎖死伺服器"
+            SSH_DISABLE_CONFIRM="確認已驗證 Key 登入正常，現在禁用密碼登入？"
+            SSH_DISABLE_DONE="密碼登入已禁用，現在只允許 Key 登入"
+            # Firewall
+            FW_TITLE="防火牆管理"
+            FW_VIEW="查看目前規則"
+            FW_ADD="新增放行連接埠"
+            FW_DEL="刪除連接埠規則"
+            FW_STATUS="查看防火牆狀態"
+            FW_PORT_PROMPT="請輸入連接埠"
+            FW_PROTO_PROMPT="協定 (tcp/udp，預設 tcp)"
+            FW_ADD_DONE="連接埠已放行"
+            FW_DEL_DONE="連接埠規則已刪除"
+            # System info
+            SYS_TITLE="系統資訊與檢測"
+            SYS_OVERVIEW="系統資訊概覽"
+            SYS_HW="完整硬體資訊"
+            SYS_STREAM="串流媒體解鎖檢測"
+            SYS_ROUTE="路由回程測試"
+            SYS_SPEED="網速測試"
+            SYS_IP="IP 品質檢測"
+            # Docker
+            DOCKER_TITLE="Docker 容器管理"
+            DOCKER_LIST="查看所有容器狀態"
+            DOCKER_RESTART="重新啟動某個容器"
+            DOCKER_STOP="停止某個容器"
+            DOCKER_LOG="查看容器日誌"
+            DOCKER_UPDATE="更新所有映像"
+            DOCKER_RESTART_ALL="一鍵重新啟動所有服務"
+            DOCKER_NAME_PROMPT="請輸入容器名稱"
+            DOCKER_STOP_CONFIRM="確認停止容器"
+            DOCKER_LOG_LINES="顯示最後幾行日誌（預設 50）"
+            # Backup
+            BACKUP_TITLE="備份與恢復"
+            BACKUP_NOW="立即備份所有服務資料"
+            BACKUP_RESTORE="恢復備份"
+            BACKUP_LIST="查看現有備份清單"
+            BACKUP_AUTO="設定自動定時備份"
+            BACKUP_DONE="備份完成！"
+            BACKUP_FILE="備份檔案"
+            BACKUP_SIZE="備份大小"
+            BACKUP_RESTORE_TIP="恢復會覆蓋現有資料，請確認後執行"
+            BACKUP_RESTORE_CONFIRM="確認恢復備份"
+            BACKUP_RESTORE_FILE="請輸入要恢復的備份檔案名稱（含路徑）"
+            BACKUP_NOT_FOUND="備份檔案不存在"
+            BACKUP_NO_BACKUP="暫無備份檔案"
+            BACKUP_STOP_ALL="停止所有 Docker 服務..."
+            BACKUP_RESTORE_ING="恢復備份中..."
+            BACKUP_RESTART_ALL="重新啟動所有 Docker 服務..."
+            BACKUP_RESTORE_DONE="備份恢復完成！"
+            BACKUP_AUTO_DAILY="每天備份一次（凌晨 3 點）"
+            BACKUP_AUTO_WEEKLY="每週備份一次（週日凌晨 3 點）"
+            BACKUP_KEEP_PROMPT="保留最近幾份備份（預設 7）"
+            BACKUP_AUTO_DONE="自動備份已設定！保留最近"
+            BACKUP_AUTO_DONE2="份備份"
+            # WARP
+            WARP_TITLE="安裝 WARP（解決送中）"
+            WARP_TIP="安裝 WARP 會修改網路設定，建議先備份重要資料"
+            WARP_CONFIRM="確認安裝 WARP？"
+            # Network
+            NET_TITLE="網路優化"
+            NET_IPV4="IPv4 優先"
+            NET_IPV6="IPv6 優先"
+            NET_DIS_IPV6="$NET_DIS_IPV6"
+            NET_EN_IPV6="啟用 IPv6"
+            NET_DNS="切換 DNS"
+            NET_DIS_IPV6_TIP="禁用 IPv6 可能影響部分服務"
+            NET_DIS_IPV6_CONFIRM="確認禁用 IPv6？"
+            NET_DNS_CUSTOM="自訂 DNS"
+            NET_DNS1_PROMPT="請輸入主 DNS"
+            NET_DNS2_PROMPT="請輸入副 DNS（可選）"
+            # Clean
+            CLEAN_TITLE="系統清理"
+            CLEAN_BEFORE="清理前可用空間"
+            CLEAN_DOCKER="清理 Docker 無用映像和容器..."
+            CLEAN_DOCKER_DONE="$CLEAN_DOCKER_DONE"
+            CLEAN_PKG="清理套件快取..."
+            CLEAN_PKG_DONE="套件快取清理完成"
+            CLEAN_LOG="清理系統日誌..."
+            CLEAN_LOG_DONE="系統日誌清理完成"
+            CLEAN_AFTER="清理後可用空間"
+            CLEAN_DONE="系統清理完成！"
+            # Deploy info
+            DEPLOY_TITLE="已儲存的部署資訊"
+            DEPLOY_EMPTY="暫無部署資訊，部署服務後會自動儲存"
+            # Update
+            UPDATE_TITLE="檢查腳本更新"
+            UPDATE_CURRENT="目前版本"
+            UPDATE_CHECKING="檢查最新版本..."
+            UPDATE_FAIL="無法檢測最新版本，請檢查網路連線"
+            UPDATE_LATEST="目前已是最新版本"
+            UPDATE_FOUND="發現新版本"
+            UPDATE_CONFIRM="是否更新到"
+            UPDATE_DONE="腳本已更新，請重新執行"
+            # Domain
+            DOMAIN_PROMPT="是否為此服務設定網域？(y/n)"
+            DOMAIN_INPUT="請輸入網域（如 example.com，不含 www）"
+            # ACME
+            ACME_TITLE="acme.sh + Cloudflare DNS 申請憑證"
+            ACME_EMAIL="請輸入電子郵件地址"
+            ACME_CF_TIP="建議使用 CF API Token（僅 DNS 編輯權限）而非 Global API Key"
+            ACME_CF_GLOBAL="使用 Global API Key（權限較大）"
+            ACME_CF_TOKEN="使用 API Token（推薦，權限較小）"
+            ACME_CF_KEY_PROMPT="請輸入 Cloudflare Global API Key"
+            ACME_CF_EMAIL_PROMPT="請輸入 Cloudflare 帳號電子郵件"
+            ACME_CF_TOKEN_PROMPT="請輸入 Cloudflare API Token"
+            ACME_DOMAIN_PROMPT="請輸入要申請憑證的主網域（如 example.com）"
+            ACME_ISSUING="申請通配符憑證中..."
+            ACME_DONE="憑證申請完成！"
+            ACME_CERT_PATH="憑證路徑"
+            ACME_KEY_PATH="私鑰路徑"
+            ACME_FAIL="憑證申請失敗，請檢查網域解析和 API Key 是否正確"
+            ;;
+        en)
+            # English
+            MSG_SUCCESS="Success"
+            MSG_ERROR="Error"
+            MSG_WARNING="Warning"
+            MSG_INFO="Info"
+            MSG_SECURITY="Security Notice"
+            MSG_CONFIRM_YN="(y/n)"
+            MSG_PRESS_ENTER="Press Enter to continue..."
+            MSG_CANCEL="Operation cancelled"
+            MSG_BACK="Back to main menu"
+            MSG_INVALID="Invalid option, please try again"
+            MSG_GOODBYE_1="Thank you for using noob ra2 VPS Toolkit"
+            MSG_GOODBYE_2="May your servers run forever stable 🚀"
+            BANNER_TITLE="noob ra2 VPS Toolkit"
+            CAT_DEPLOY="I. Core Deployment"
+            CAT_SECURITY="II. Security"
+            CAT_SYSINFO="III. System Info & Diagnostics"
+            CAT_DOCKER="IV. Docker Management"
+            CAT_BACKUP="V. Backup & Restore"
+            CAT_NETWORK="VI. Network Tools"
+            CAT_MAINTAIN="VII. Maintenance"
+            MENU_1="VPS Initialization & Hardening"
+            MENU_2="Deploy WordPress"
+            MENU_3="Deploy XBoard"
+            MENU_4="Deploy 3x-ui"
+            MENU_5="Request SSL Certificate (acme.sh + CF DNS)"
+            MENU_6="SSH Security Hardening"
+            MENU_7="Firewall Management"
+            MENU_8="System Info & Diagnostics"
+            MENU_9="Docker Container Management"
+            MENU_10="Backup & Restore"
+            MENU_11="Install WARP"
+            MENU_12="Network Optimization"
+            MENU_13="System Cleanup"
+            MENU_14="View Deployment Info"
+            MENU_15="Check for Updates"
+            MENU_0="Exit"
+            MENU_PROMPT="Select an option [0-15]"
+            INIT_TITLE="VPS Initialization & Hardening"
+            INIT_TZ_TITLE="Select Timezone"
+            INIT_TZ_1="Asia/Tokyo"
+            INIT_TZ_2="Asia/Shanghai"
+            INIT_TZ_3="UTC"
+            INIT_TZ_4="America/New_York"
+            INIT_TZ_5="Europe/London"
+            INIT_TZ_6="Custom"
+            INIT_TZ_PROMPT="Select [1-6, default 1]"
+            INIT_TZ_CUSTOM="Enter timezone (e.g. Asia/Singapore)"
+            INIT_TZ_DONE="Timezone set to"
+            INIT_BBR_DONE="BBR acceleration enabled"
+            INIT_BBR_SKIP="BBR already enabled, skipping"
+            INIT_RAM_DETECT="Detected RAM"
+            INIT_SWAP_REC="Recommended Swap"
+            INIT_SWAP_PROMPT="Enter Swap size (press Enter for recommended)"
+            INIT_SWAP_DONE="Swap configured"
+            INIT_SWAP_SKIP="Swap already configured, skipping"
+            INIT_DNS_DONE="DNS optimized (Google + Cloudflare)"
+            INIT_IPV4_DONE="IPv4 priority enabled"
+            INIT_SSH_CURRENT="Current SSH port"
+            INIT_SSH_PROMPT="Enter new SSH port (press Enter to keep current)"
+            INIT_SSH_TIP="Ensure firewall allows new SSH port before changing"
+            INIT_SSH_CONFIRM="Confirm changing SSH port to"
+            INIT_SSH_DONE="SSH port changed to"
+            INIT_SSH_WARNING="Open a new window to verify login with new port before closing this one!"
+            INIT_DONE="VPS initialization complete!"
+            WP_INSTALL_TITLE="Install WordPress"
+            WP_RUNNING="WordPress is already installed and running"
+            WP_STOPPED="WordPress is installed but not running"
+            WP_REINSTALL="Reinstall (overwrite config, keep data)"
+            WP_REINSTALL_STOP="Stopping existing containers..."
+            WP_STARTING="Starting WordPress containers..."
+            WP_STARTED="WordPress containers started"
+            WP_DONE="WordPress deployed successfully!"
+            WP_ACCESS="Access URL"
+            WP_SAVED="Credentials saved to /root/deploy_info.txt"
+            WP_UNINSTALL_TITLE="Uninstall WordPress"
+            WP_NOT_FOUND="WordPress installation not found"
+            WP_UNINSTALL_TIP="This operation is irreversible. Please backup your data first"
+            WP_UNINSTALL_CONFIRM="Confirm uninstall WordPress?"
+            WP_STOP_CONTAINER="Stopping and removing containers..."
+            WP_CONTAINER_STOPPED="Containers stopped"
+            WP_DELETE_DATA="Delete all data (database, posts, media files)?"
+            WP_DATA_DELETED="Data deleted"
+            WP_DATA_KEPT="Containers removed, data kept at /opt/wordpress"
+            WP_DOMAIN_PROMPT="Enter WordPress domain (press Enter to skip)"
+            WP_NGINX_DELETED="Nginx config removed"
+            WP_UNINSTALL_DONE="WordPress uninstalled successfully"
+            XB_INSTALL_TITLE="Install XBoard"
+            XB_RUNNING="XBoard is already installed and running"
+            XB_STOPPED="XBoard is installed but not running"
+            XB_WAIT_DB="Waiting for database initialization..."
+            XB_WIZARD_TIP="Starting XBoard setup wizard. Please use the following credentials"
+            XB_DONE="XBoard deployed successfully!"
+            XB_UNINSTALL_TITLE="Uninstall XBoard"
+            XB_NOT_FOUND="XBoard installation not found"
+            XB_UNINSTALL_CONFIRM="Confirm uninstall XBoard?"
+            XB_DELETE_DATA="Delete all data (database, user data)?"
+            XB_UNINSTALL_DONE="XBoard uninstalled successfully"
+            UI_INSTALL_TITLE="Install 3x-ui"
+            UI_RUNNING="3x-ui is already installed"
+            UI_DONE="3x-ui deployed successfully!"
+            UI_SAVE_TIP="Please save your panel credentials to /root/deploy_info.txt"
+            UI_UNINSTALL_TITLE="Uninstall 3x-ui"
+            UI_NOT_FOUND="3x-ui installation not found"
+            UI_UNINSTALL_CONFIRM="Confirm uninstall 3x-ui?"
+            UI_UNINSTALL_DONE="3x-ui uninstalled successfully"
+            SSH_TITLE="SSH Security Hardening"
+            SSH_KEY_TITLE="Add SSH Public Key"
+            SSH_KEY_TIP="Verify key login works before disabling password auth"
+            SSH_KEY_PROMPT="Paste your SSH public key (starts with ssh-rsa or ssh-ed25519)"
+            SSH_KEY_ERR="Invalid key format. Must start with ssh-rsa or ssh-ed25519"
+            SSH_KEY_DONE="SSH public key added successfully!"
+            SSH_KEY_WARN="Open a new window to verify key login before disabling password auth"
+            SSH_DISABLE_TITLE="Disable Password Login"
+            SSH_NO_KEY="No SSH key found. Add a key and verify login before disabling passwords"
+            SSH_DISABLE_TIP1="After disabling, only SSH key login will be allowed"
+            SSH_DISABLE_TIP2="Ensure key login works in a new window first, or you will be locked out"
+            SSH_DISABLE_CONFIRM="Confirm key login works? Disable password login now?"
+            SSH_DISABLE_DONE="Password login disabled. SSH key only"
+            FW_TITLE="Firewall Management"
+            FW_VIEW="View current rules"
+            FW_ADD="Allow port"
+            FW_DEL="Remove port rule"
+            FW_STATUS="View firewall status"
+            FW_PORT_PROMPT="Enter port number"
+            FW_PROTO_PROMPT="Protocol (tcp/udp, default tcp)"
+            FW_ADD_DONE="Port allowed"
+            FW_DEL_DONE="Port rule removed"
+            SYS_TITLE="System Info & Diagnostics"
+            SYS_OVERVIEW="System Overview"
+            SYS_HW="Full Hardware Info"
+            SYS_STREAM="Streaming Unlock Test"
+            SYS_ROUTE="Route Trace"
+            SYS_SPEED="Speed Test"
+            SYS_IP="IP Quality Check"
+            DOCKER_TITLE="Docker Container Management"
+            DOCKER_LIST="View all containers"
+            DOCKER_RESTART="Restart a container"
+            DOCKER_STOP="Stop a container"
+            DOCKER_LOG="View container logs"
+            DOCKER_UPDATE="Update all images"
+            DOCKER_RESTART_ALL="Restart all services"
+            DOCKER_NAME_PROMPT="Enter container name"
+            DOCKER_STOP_CONFIRM="Confirm stop container"
+            DOCKER_LOG_LINES="Show last N lines (default 50)"
+            BACKUP_TITLE="Backup & Restore"
+            BACKUP_NOW="Backup all service data now"
+            BACKUP_RESTORE="Restore backup"
+            BACKUP_LIST="List existing backups"
+            BACKUP_AUTO="Set up automatic backup"
+            BACKUP_DONE="Backup complete!"
+            BACKUP_FILE="Backup file"
+            BACKUP_SIZE="Backup size"
+            BACKUP_RESTORE_TIP="Restore will overwrite existing data. Please confirm"
+            BACKUP_RESTORE_CONFIRM="Confirm restore backup"
+            BACKUP_RESTORE_FILE="Enter backup file path to restore"
+            BACKUP_NOT_FOUND="Backup file not found"
+            BACKUP_NO_BACKUP="No backup files found"
+            BACKUP_STOP_ALL="Stopping all Docker services..."
+            BACKUP_RESTORE_ING="Restoring backup..."
+            BACKUP_RESTART_ALL="Restarting all Docker services..."
+            BACKUP_RESTORE_DONE="Backup restored successfully!"
+            BACKUP_AUTO_DAILY="Daily backup (3 AM)"
+            BACKUP_AUTO_WEEKLY="Weekly backup (Sunday 3 AM)"
+            BACKUP_KEEP_PROMPT="Number of backups to keep (default 7)"
+            BACKUP_AUTO_DONE="Auto backup configured! Keeping last"
+            BACKUP_AUTO_DONE2="backups"
+            WARP_TITLE="Install WARP"
+            WARP_TIP="WARP will modify network settings. Backup important data first"
+            WARP_CONFIRM="Confirm install WARP?"
+            NET_TITLE="Network Optimization"
+            NET_IPV4="Prefer IPv4"
+            NET_IPV6="Prefer IPv6"
+            NET_DIS_IPV6="Disable IPv6"
+            NET_EN_IPV6="Enable IPv6"
+            NET_DNS="Switch DNS"
+            NET_DIS_IPV6_TIP="Disabling IPv6 may affect some services"
+            NET_DIS_IPV6_CONFIRM="Confirm disable IPv6?"
+            NET_DNS_CUSTOM="Custom DNS"
+            NET_DNS1_PROMPT="Enter primary DNS"
+            NET_DNS2_PROMPT="Enter secondary DNS (optional)"
+            CLEAN_TITLE="System Cleanup"
+            CLEAN_BEFORE="Free space before"
+            CLEAN_DOCKER="Cleaning unused Docker images and containers..."
+            CLEAN_DOCKER_DONE="Docker cleanup complete"
+            CLEAN_PKG="Cleaning package cache..."
+            CLEAN_PKG_DONE="Package cache cleaned"
+            CLEAN_LOG="Cleaning system logs..."
+            CLEAN_LOG_DONE="System logs cleaned"
+            CLEAN_AFTER="Free space after"
+            CLEAN_DONE="System cleanup complete!"
+            DEPLOY_TITLE="Saved Deployment Info"
+            DEPLOY_EMPTY="No deployment info yet. Will be saved after deploying services"
+            UPDATE_TITLE="Check for Updates"
+            UPDATE_CURRENT="Current version"
+            UPDATE_CHECKING="Checking for latest version..."
+            UPDATE_FAIL="Unable to check for updates. Please check network connection"
+            UPDATE_LATEST="Already on the latest version"
+            UPDATE_FOUND="New version available"
+            UPDATE_CONFIRM="Update to"
+            UPDATE_DONE="Script updated. Please restart"
+            DOMAIN_PROMPT="Configure domain for this service? (y/n)"
+            DOMAIN_INPUT="Enter domain (e.g. example.com, without www)"
+            ACME_TITLE="SSL Certificate (acme.sh + Cloudflare DNS)"
+            ACME_EMAIL="Enter your email address"
+            ACME_CF_TIP="Recommended: Use CF API Token (DNS edit only) instead of Global API Key"
+            ACME_CF_GLOBAL="Use Global API Key (full access)"
+            ACME_CF_TOKEN="Use API Token (recommended, limited scope)"
+            ACME_CF_KEY_PROMPT="Enter Cloudflare Global API Key"
+            ACME_CF_EMAIL_PROMPT="Enter Cloudflare account email"
+            ACME_CF_TOKEN_PROMPT="Enter Cloudflare API Token"
+            ACME_DOMAIN_PROMPT="Enter domain to issue certificate for (e.g. example.com)"
+            ACME_ISSUING="Requesting wildcard certificate..."
+            ACME_DONE="Certificate issued successfully!"
+            ACME_CERT_PATH="Certificate path"
+            ACME_KEY_PATH="Private key path"
+            ACME_FAIL="Certificate request failed. Check DNS and API credentials"
+            ;;
+        ja)
+            # 日本語
+            MSG_SUCCESS="成功"
+            MSG_ERROR="エラー"
+            MSG_WARNING="警告"
+            MSG_INFO="情報"
+            MSG_SECURITY="セキュリティ注意"
+            MSG_CONFIRM_YN="(y/n)"
+            MSG_PRESS_ENTER="Enterキーで続行..."
+            MSG_CANCEL="操作をキャンセルしました"
+            MSG_BACK="メインメニューに戻る"
+            MSG_INVALID="無効な選択です。再度お試しください"
+            MSG_GOODBYE_1="noob ra2 VPS ツールキットをご利用いただきありがとうございます"
+            MSG_GOODBYE_2="サーバーが永遠に安定して動作しますように 🚀"
+            BANNER_TITLE="noob ra2 VPS ツールキット"
+            CAT_DEPLOY="一、コアデプロイ"
+            CAT_SECURITY="二、セキュリティ管理"
+            CAT_SYSINFO="三、システム情報と診断"
+            CAT_DOCKER="四、Docker管理"
+            CAT_BACKUP="五、バックアップと復元"
+            CAT_NETWORK="六、ネットワークツール"
+            CAT_MAINTAIN="七、システムメンテナンス"
+            MENU_1="VPS初期化とセキュリティ強化"
+            MENU_2="WordPress デプロイ"
+            MENU_3="XBoard デプロイ"
+            MENU_4="3x-ui デプロイ"
+            MENU_5="SSL証明書取得 (acme.sh + CF DNS)"
+            MENU_6="SSHセキュリティ強化"
+            MENU_7="ファイアウォール管理"
+            MENU_8="システム情報と診断"
+            MENU_9="Dockerコンテナ管理"
+            MENU_10="バックアップと復元"
+            MENU_11="WARPインストール"
+            MENU_12="ネットワーク最適化"
+            MENU_13="システムクリーンアップ"
+            MENU_14="デプロイ情報を表示"
+            MENU_15="アップデートを確認"
+            MENU_0="終了"
+            MENU_PROMPT="操作を選択してください [0-15]"
+            INIT_TITLE="VPS初期化とセキュリティ強化"
+            INIT_TZ_TITLE="タイムゾーンを選択"
+            INIT_TZ_1="アジア/東京"
+            INIT_TZ_2="アジア/上海"
+            INIT_TZ_3="UTC"
+            INIT_TZ_4="アメリカ/ニューヨーク"
+            INIT_TZ_5="ヨーロッパ/ロンドン"
+            INIT_TZ_6="カスタム"
+            INIT_TZ_PROMPT="選択してください [1-6、デフォルト 1]"
+            INIT_TZ_CUSTOM="タイムゾーンを入力（例：Asia/Singapore）"
+            INIT_TZ_DONE="タイムゾーンを設定しました"
+            INIT_BBR_DONE="BBRアクセラレーションを有効化しました"
+            INIT_BBR_SKIP="BBRは既に有効です。スキップします"
+            INIT_RAM_DETECT="検出されたRAM"
+            INIT_SWAP_REC="推奨Swapサイズ"
+            INIT_SWAP_PROMPT="Swapサイズを入力（Enterで推奨値を使用）"
+            INIT_SWAP_DONE="Swapを設定しました"
+            INIT_SWAP_SKIP="Swapは既に設定されています。スキップします"
+            INIT_DNS_DONE="DNSを最適化しました（Google + Cloudflare）"
+            INIT_IPV4_DONE="IPv4優先を有効化しました"
+            INIT_SSH_CURRENT="現在のSSHポート"
+            INIT_SSH_PROMPT="新しいSSHポートを入力（Enterで現在のポートを維持）"
+            INIT_SSH_TIP="変更前にファイアウォールで新しいSSHポートを許可してください"
+            INIT_SSH_CONFIRM="SSHポートをに変更しますか"
+            INIT_SSH_DONE="SSHポートをに変更しました"
+            INIT_SSH_WARNING="変更後は新しいウィンドウで新ポートへのログインを確認してから、このウィンドウを閉じてください！"
+            INIT_DONE="VPS初期化完了！"
+            WP_INSTALL_TITLE="WordPress インストール"
+            WP_RUNNING="WordPressは既にインストールされ、実行中です"
+            WP_STOPPED="WordPressはインストールされていますが、停止しています"
+            WP_REINSTALL="再インストール（設定を上書き、データは保持）"
+            WP_REINSTALL_STOP="既存のコンテナを停止中..."
+            WP_STARTING="WordPressコンテナを起動中..."
+            WP_STARTED="WordPressコンテナが起動しました"
+            WP_DONE="WordPressのデプロイが完了しました！"
+            WP_ACCESS="アクセスURL"
+            WP_SAVED="認証情報を /root/deploy_info.txt に保存しました"
+            WP_UNINSTALL_TITLE="WordPress アンインストール"
+            WP_NOT_FOUND="WordPressのインストールが見つかりません"
+            WP_UNINSTALL_TIP="この操作は元に戻せません。重要なデータをバックアップしてください"
+            WP_UNINSTALL_CONFIRM="WordPressをアンインストールしますか？"
+            WP_STOP_CONTAINER="コンテナを停止・削除中..."
+            WP_CONTAINER_STOPPED="コンテナを停止しました"
+            WP_DELETE_DATA="全データを削除しますか（データベース、記事、メディアファイル）？"
+            WP_DATA_DELETED="データを削除しました"
+            WP_DATA_KEPT="コンテナを削除しました。データは /opt/wordpress に保持されています"
+            WP_DOMAIN_PROMPT="WordPressのドメインを入力（スキップする場合はEnter）"
+            WP_NGINX_DELETED="Nginx設定を削除しました"
+            WP_UNINSTALL_DONE="WordPressのアンインストールが完了しました"
+            XB_INSTALL_TITLE="XBoard インストール"
+            XB_RUNNING="XBoardは既にインストールされ、実行中です"
+            XB_STOPPED="XBoardはインストールされていますが、停止しています"
+            XB_WAIT_DB="データベースの初期化を待っています..."
+            XB_WIZARD_TIP="XBoardセットアップウィザードを開始します。以下の情報を使用してください"
+            XB_DONE="XBoardのデプロイが完了しました！"
+            XB_UNINSTALL_TITLE="XBoard アンインストール"
+            XB_NOT_FOUND="XBoardのインストールが見つかりません"
+            XB_UNINSTALL_CONFIRM="XBoardをアンインストールしますか？"
+            XB_DELETE_DATA="全データを削除しますか（データベース、ユーザーデータ）？"
+            XB_UNINSTALL_DONE="XBoardのアンインストールが完了しました"
+            UI_INSTALL_TITLE="3x-ui インストール"
+            UI_RUNNING="3x-uiは既にインストールされています"
+            UI_DONE="3x-uiのデプロイが完了しました！"
+            UI_SAVE_TIP="パネルの認証情報を /root/deploy_info.txt に保存してください"
+            UI_UNINSTALL_TITLE="3x-ui アンインストール"
+            UI_NOT_FOUND="3x-uiのインストールが見つかりません"
+            UI_UNINSTALL_CONFIRM="3x-uiをアンインストールしますか？"
+            UI_UNINSTALL_DONE="3x-uiのアンインストールが完了しました"
+            SSH_TITLE="SSHセキュリティ強化"
+            SSH_KEY_TITLE="SSH公開鍵の追加"
+            SSH_KEY_TIP="パスワード認証を無効にする前に、鍵でのログインを確認してください"
+            SSH_KEY_PROMPT="SSH公開鍵を貼り付けてください（ssh-rsaまたはssh-ed25519で始まる）"
+            SSH_KEY_ERR="無効な鍵形式です。ssh-rsaまたはssh-ed25519で始まる必要があります"
+            SSH_KEY_DONE="SSH公開鍵を追加しました！"
+            SSH_KEY_WARN="新しいウィンドウで鍵でのログインを確認してから、パスワード認証を無効にしてください"
+            SSH_DISABLE_TITLE="パスワードログインの無効化"
+            SSH_NO_KEY="SSH鍵が見つかりません。鍵を追加してログインを確認してから、パスワードを無効にしてください"
+            SSH_DISABLE_TIP1="無効化後は、SSH鍵でのログインのみ許可されます"
+            SSH_DISABLE_TIP2="新しいウィンドウで鍵ログインが機能することを確認してください。そうしないとサーバーにアクセスできなくなります"
+            SSH_DISABLE_CONFIRM="鍵ログインが機能することを確認しましたか？パスワードログインを無効にしますか？"
+            SSH_DISABLE_DONE="パスワードログインを無効化しました。SSH鍵のみ許可"
+            FW_TITLE="ファイアウォール管理"
+            FW_VIEW="現在のルールを表示"
+            FW_ADD="ポートを許可"
+            FW_DEL="ポートルールを削除"
+            FW_STATUS="ファイアウォールの状態を表示"
+            FW_PORT_PROMPT="ポート番号を入力"
+            FW_PROTO_PROMPT="プロトコル (tcp/udp、デフォルト tcp)"
+            FW_ADD_DONE="ポートを許可しました"
+            FW_DEL_DONE="ポートルールを削除しました"
+            SYS_TITLE="システム情報と診断"
+            SYS_OVERVIEW="システム概要"
+            SYS_HW="詳細なハードウェア情報"
+            SYS_STREAM="ストリーミング解除テスト"
+            SYS_ROUTE="ルートトレース"
+            SYS_SPEED="スピードテスト"
+            SYS_IP="IP品質チェック"
+            DOCKER_TITLE="Dockerコンテナ管理"
+            DOCKER_LIST="全コンテナを表示"
+            DOCKER_RESTART="コンテナを再起動"
+            DOCKER_STOP="コンテナを停止"
+            DOCKER_LOG="コンテナログを表示"
+            DOCKER_UPDATE="全イメージを更新"
+            DOCKER_RESTART_ALL="全サービスを再起動"
+            DOCKER_NAME_PROMPT="コンテナ名を入力"
+            DOCKER_STOP_CONFIRM="コンテナを停止しますか"
+            DOCKER_LOG_LINES="表示する最後の行数（デフォルト50）"
+            BACKUP_TITLE="バックアップと復元"
+            BACKUP_NOW="全サービスデータを今すぐバックアップ"
+            BACKUP_RESTORE="バックアップを復元"
+            BACKUP_LIST="既存のバックアップを一覧表示"
+            BACKUP_AUTO="自動バックアップを設定"
+            BACKUP_DONE="バックアップ完了！"
+            BACKUP_FILE="バックアップファイル"
+            BACKUP_SIZE="バックアップサイズ"
+            BACKUP_RESTORE_TIP="復元すると既存のデータが上書きされます。確認してください"
+            BACKUP_RESTORE_CONFIRM="バックアップを復元しますか"
+            BACKUP_RESTORE_FILE="復元するバックアップファイルのパスを入力"
+            BACKUP_NOT_FOUND="バックアップファイルが見つかりません"
+            BACKUP_NO_BACKUP="バックアップファイルがありません"
+            BACKUP_STOP_ALL="全Dockerサービスを停止中..."
+            BACKUP_RESTORE_ING="バックアップを復元中..."
+            BACKUP_RESTART_ALL="全Dockerサービスを再起動中..."
+            BACKUP_RESTORE_DONE="バックアップの復元が完了しました！"
+            BACKUP_AUTO_DAILY="毎日バックアップ（午前3時）"
+            BACKUP_AUTO_WEEKLY="毎週バックアップ（日曜午前3時）"
+            BACKUP_KEEP_PROMPT="保持するバックアップ数（デフォルト7）"
+            BACKUP_AUTO_DONE="自動バックアップを設定しました！最新"
+            BACKUP_AUTO_DONE2="件を保持"
+            WARP_TITLE="WARPインストール"
+            WARP_TIP="WARPはネットワーク設定を変更します。重要なデータをバックアップしてください"
+            WARP_CONFIRM="WARPをインストールしますか？"
+            NET_TITLE="ネットワーク最適化"
+            NET_IPV4="IPv4を優先"
+            NET_IPV6="IPv6を優先"
+            NET_DIS_IPV6="IPv6を無効化"
+            NET_EN_IPV6="IPv6を有効化"
+            NET_DNS="DNSを切り替え"
+            NET_DIS_IPV6_TIP="IPv6を無効化すると一部のサービスに影響する場合があります"
+            NET_DIS_IPV6_CONFIRM="IPv6を無効化しますか？"
+            NET_DNS_CUSTOM="カスタムDNS"
+            NET_DNS1_PROMPT="プライマリDNSを入力"
+            NET_DNS2_PROMPT="セカンダリDNSを入力（任意）"
+            CLEAN_TITLE="システムクリーンアップ"
+            CLEAN_BEFORE="クリーンアップ前の空き容量"
+            CLEAN_DOCKER="未使用のDockerイメージとコンテナを削除中..."
+            CLEAN_DOCKER_DONE="Dockerのクリーンアップ完了"
+            CLEAN_PKG="パッケージキャッシュを削除中..."
+            CLEAN_PKG_DONE="パッケージキャッシュを削除しました"
+            CLEAN_LOG="システムログを削除中..."
+            CLEAN_LOG_DONE="システムログを削除しました"
+            CLEAN_AFTER="クリーンアップ後の空き容量"
+            CLEAN_DONE="システムクリーンアップ完了！"
+            DEPLOY_TITLE="保存されたデプロイ情報"
+            DEPLOY_EMPTY="デプロイ情報がありません。サービスをデプロイすると自動保存されます"
+            UPDATE_TITLE="アップデートを確認"
+            UPDATE_CURRENT="現在のバージョン"
+            UPDATE_CHECKING="最新バージョンを確認中..."
+            UPDATE_FAIL="アップデートを確認できません。ネットワーク接続を確認してください"
+            UPDATE_LATEST="最新バージョンです"
+            UPDATE_FOUND="新しいバージョンが見つかりました"
+            UPDATE_CONFIRM="にアップデートしますか"
+            UPDATE_DONE="スクリプトを更新しました。再起動してください"
+            DOMAIN_PROMPT="このサービスにドメインを設定しますか？(y/n)"
+            DOMAIN_INPUT="ドメインを入力してください（例：example.com、wwwなし）"
+            ACME_TITLE="SSL証明書取得 (acme.sh + Cloudflare DNS)"
+            ACME_EMAIL="メールアドレスを入力"
+            ACME_CF_TIP="推奨：Global API KeyではなくCF APIトークン（DNS編集のみ）を使用してください"
+            ACME_CF_GLOBAL="Global API Keyを使用（フルアクセス）"
+            ACME_CF_TOKEN="APIトークンを使用（推奨、限定スコープ）"
+            ACME_CF_KEY_PROMPT="Cloudflare Global API Keyを入力"
+            ACME_CF_EMAIL_PROMPT="Cloudflareアカウントのメールアドレスを入力"
+            ACME_CF_TOKEN_PROMPT="Cloudflare APIトークンを入力"
+            ACME_DOMAIN_PROMPT="証明書を取得するメインドメインを入力（例：example.com）"
+            ACME_ISSUING="ワイルドカード証明書を取得中..."
+            ACME_DONE="証明書の取得が完了しました！"
+            ACME_CERT_PATH="証明書パス"
+            ACME_KEY_PATH="秘密鍵パス"
+            ACME_FAIL="証明書の取得に失敗しました。DNSとAPIキーを確認してください"
+            ;;
+        *)
+            # 简体中文（默认）
+            MSG_SUCCESS="成功"
+            MSG_ERROR="错误"
+            MSG_WARNING="警告"
+            MSG_INFO="信息"
+            MSG_SECURITY="安全提示"
+            MSG_CONFIRM_YN="(y/n)"
+            MSG_PRESS_ENTER="按回车键继续..."
+            MSG_CANCEL="操作已取消"
+            MSG_BACK="返回主菜单"
+            MSG_INVALID="$MSG_INVALID"
+            MSG_GOODBYE_1="感谢使用 noob ra2 VPS 工具箱"
+            MSG_GOODBYE_2="愿你的服务器永远稳如磐石 🚀"
+            BANNER_TITLE="noob ra2 VPS 工具箱"
+            CAT_DEPLOY="一、核心部署"
+            CAT_SECURITY="二、安全管理"
+            CAT_SYSINFO="$CAT_SYSINFO"
+            CAT_DOCKER="四、Docker 管理"
+            CAT_BACKUP="$CAT_BACKUP"
+            CAT_NETWORK="$CAT_NETWORK"
+            CAT_MAINTAIN="$CAT_MAINTAIN"
+            MENU_1="VPS 初始化加固"
+            MENU_2="部署 WordPress"
+            MENU_3="部署 XBoard"
+            MENU_4="部署 3x-ui"
+            MENU_5="$MENU_5"
+            MENU_6="SSH 安全加固"
+            MENU_7="$MENU_7"
+            MENU_8="$MENU_8"
+            MENU_9="Docker 容器管理"
+            MENU_10="$MENU_10"
+            MENU_11="$MENU_11"
+            MENU_12="$MENU_12"
+            MENU_13="$MENU_13"
+            MENU_14="$MENU_14"
+            MENU_15="$MENU_15"
+            MENU_0="退出"
+            MENU_PROMPT="请选择操作 [0-15]"
+            INIT_TITLE="VPS 初始化加固"
+            INIT_TZ_TITLE="请选择时区"
+            INIT_TZ_1="$INIT_TZ_1"
+            INIT_TZ_2="$INIT_TZ_2"
+            INIT_TZ_3="UTC"
+            INIT_TZ_4="$INIT_TZ_3"
+            INIT_TZ_5="$INIT_TZ_4"
+            INIT_TZ_6="$INIT_TZ_6"
+            INIT_TZ_PROMPT="请选择 [1-6，默认 1]"
+            INIT_TZ_CUSTOM="请输入时区（如 Asia/Singapore）"
+            INIT_TZ_DONE="时区已设置为"
+            INIT_BBR_DONE="$INIT_BBR_DONE"
+            INIT_BBR_SKIP="$INIT_BBR_SKIP"
+            INIT_RAM_DETECT="检测到 RAM"
+            INIT_SWAP_REC="推荐 Swap"
+            INIT_SWAP_PROMPT="请输入 Swap 大小（直接回车使用推荐值）"
+            INIT_SWAP_DONE="Swap 已配置"
+            INIT_SWAP_SKIP="$INIT_SWAP_SKIP"
+            INIT_DNS_DONE="$INIT_DNS_DONE"
+            INIT_IPV4_DONE="$INIT_IPV4_DONE"
+            INIT_SSH_CURRENT="当前 SSH 端口"
+            INIT_SSH_PROMPT="请输入新 SSH 端口（直接回车保持当前端口）"
+            INIT_SSH_TIP="修改 SSH 端口前请确认防火墙已放行新端口"
+            INIT_SSH_CONFIRM="确认修改 SSH 端口为"
+            INIT_SSH_DONE="SSH 端口已改为"
+            INIT_SSH_WARNING="请开启新窗口用新端口验证能否登录，确认后再关闭当前窗口！"
+            INIT_DONE="VPS 初始化加固完成！"
+            WP_INSTALL_TITLE="安装 WordPress"
+            WP_RUNNING="$WP_RUNNING"
+            WP_STOPPED="$WP_STOPPED"
+            WP_REINSTALL="$WP_REINSTALL"
+            WP_REINSTALL_STOP="$WP_REINSTALL_STOP"
+            WP_STARTING="$WP_STARTING"
+            WP_STARTED="$WP_STARTED"
+            WP_DONE="WordPress 部署完成！"
+            WP_ACCESS="访问地址"
+            WP_SAVED="$WP_SAVED"
+            WP_UNINSTALL_TITLE="卸载 WordPress"
+            WP_NOT_FOUND="$WP_NOT_FOUND"
+            WP_UNINSTALL_TIP="$WP_UNINSTALL_TIP"
+            WP_UNINSTALL_CONFIRM="$WP_UNINSTALL_CONFIRM"
+            WP_STOP_CONTAINER="$WP_STOP_CONTAINER"
+            WP_CONTAINER_STOPPED="容器已停止"
+            WP_DELETE_DATA="$WP_DELETE_DATA"
+            WP_DATA_DELETED="$WP_DATA_DELETED"
+            WP_DATA_KEPT="$WP_DATA_KEPT"
+            WP_DOMAIN_PROMPT="请输入 WordPress 的域名（没有域名直接回车跳过）"
+            WP_NGINX_DELETED="$WP_NGINX_DELETED"
+            WP_UNINSTALL_DONE="$WP_UNINSTALL_DONE"
+            XB_INSTALL_TITLE="安装 XBoard"
+            XB_RUNNING="$XB_RUNNING"
+            XB_STOPPED="$XB_STOPPED"
+            XB_WAIT_DB="$XB_WAIT_DB"
+            XB_WIZARD_TIP="即将进入 XBoard 安装向导，请按以下信息填写"
+            XB_DONE="XBoard 部署完成！"
+            XB_UNINSTALL_TITLE="卸载 XBoard"
+            XB_NOT_FOUND="$XB_NOT_FOUND"
+            XB_UNINSTALL_CONFIRM="$XB_UNINSTALL_CONFIRM"
+            XB_DELETE_DATA="$XB_DELETE_DATA"
+            XB_UNINSTALL_DONE="$XB_UNINSTALL_DONE"
+            UI_INSTALL_TITLE="安装 3x-ui"
+            UI_RUNNING="$UI_RUNNING"
+            UI_DONE="3x-ui 部署完成！"
+            UI_SAVE_TIP="$UI_SAVE_TIP"
+            UI_UNINSTALL_TITLE="卸载 3x-ui"
+            UI_NOT_FOUND="$UI_NOT_FOUND"
+            UI_UNINSTALL_CONFIRM="$UI_UNINSTALL_CONFIRM"
+            UI_UNINSTALL_DONE="$UI_UNINSTALL_DONE"
+            SSH_TITLE="SSH 安全加固"
+            SSH_KEY_TITLE="植入 SSH 公钥"
+            SSH_KEY_TIP="$SSH_KEY_TIP"
+            SSH_KEY_PROMPT="请粘贴你的 SSH 公钥内容（以 ssh-rsa 或 ssh-ed25519 开头）"
+            SSH_KEY_ERR="$SSH_KEY_ERR"
+            SSH_KEY_DONE="$SSH_KEY_DONE"
+            SSH_KEY_WARN="$SSH_KEY_WARN"
+            SSH_DISABLE_TITLE="禁用密码登录"
+            SSH_NO_KEY="未检测到 SSH 公钥，禁止执行此操作！请先植入 SSH 公钥并验证 Key 登录正常后再禁用密码"
+            SSH_DISABLE_TIP1="禁用密码登录后，只能通过 SSH Key 登录"
+            SSH_DISABLE_TIP2="请确保已在新窗口验证 Key 登录成功，否则将锁死服务器"
+            SSH_DISABLE_CONFIRM="确认已验证 Key 登录正常，现在禁用密码登录？"
+            SSH_DISABLE_DONE="$SSH_DISABLE_DONE"
+            FW_TITLE="防火墙管理"
+            FW_VIEW="$FW_VIEW"
+            FW_ADD="$FW_ADD"
+            FW_DEL="$FW_DEL"
+            FW_STATUS="$FW_STATUS"
+            FW_PORT_PROMPT="请输入要放行的端口"
+            FW_PROTO_PROMPT="协议 (tcp/udp，默认 tcp)"
+            FW_ADD_DONE="端口已放行"
+            FW_DEL_DONE="端口规则已删除"
+            SYS_TITLE="系统信息与检测"
+            SYS_OVERVIEW="$SYS_OVERVIEW"
+            SYS_HW="$SYS_HW"
+            SYS_STREAM="$SYS_STREAM"
+            SYS_ROUTE="$SYS_ROUTE"
+            SYS_SPEED="$SYS_SPEED"
+            SYS_IP="$SYS_IP"
+            DOCKER_TITLE="Docker 容器管理"
+            DOCKER_LIST="$DOCKER_LIST"
+            DOCKER_RESTART="$DOCKER_RESTART"
+            DOCKER_STOP="$DOCKER_STOP"
+            DOCKER_LOG="$DOCKER_LOG"
+            DOCKER_UPDATE="$DOCKER_UPDATE"
+            DOCKER_RESTART_ALL="$DOCKER_RESTART_ALL"
+            DOCKER_NAME_PROMPT="请输入容器名称"
+            DOCKER_STOP_CONFIRM="确认停止容器"
+            DOCKER_LOG_LINES="显示最后多少行日志（默认 50）"
+            BACKUP_TITLE="备份与恢复"
+            BACKUP_NOW="$BACKUP_NOW"
+            BACKUP_RESTORE="$BACKUP_RESTORE"
+            BACKUP_LIST="$BACKUP_LIST"
+            BACKUP_AUTO="$BACKUP_AUTO"
+            BACKUP_DONE="$BACKUP_DONE"
+            BACKUP_FILE="备份文件"
+            BACKUP_SIZE="备份大小"
+            BACKUP_RESTORE_TIP="恢复会覆盖现有数据，请确认后执行"
+            BACKUP_RESTORE_CONFIRM="确认恢复备份"
+            BACKUP_RESTORE_FILE="请输入要恢复的备份文件名（含路径）"
+            BACKUP_NOT_FOUND="$BACKUP_NOT_FOUND"
+            BACKUP_NO_BACKUP="$BACKUP_NO_BACKUP"
+            BACKUP_STOP_ALL="$BACKUP_STOP_ALL"
+            BACKUP_RESTORE_ING="$BACKUP_RESTORE_ING"
+            BACKUP_RESTART_ALL="$BACKUP_RESTART_ALL"
+            BACKUP_RESTORE_DONE="$BACKUP_RESTORE_DONE"
+            BACKUP_AUTO_DAILY="$BACKUP_AUTO_DAILY"
+            BACKUP_AUTO_WEEKLY="$BACKUP_AUTO_WEEKLY"
+            BACKUP_KEEP_PROMPT="保留最近几份备份（默认 7）"
+            BACKUP_AUTO_DONE="自动备份已设置！保留最近"
+            BACKUP_AUTO_DONE2="份备份"
+            WARP_TITLE="安装 WARP（解决送中）"
+            WARP_TIP="$WARP_TIP"
+            WARP_CONFIRM="$WARP_CONFIRM"
+            NET_TITLE="网络优化"
+            NET_IPV4="$NET_IPV4"
+            NET_IPV6="$NET_IPV6"
+            NET_DIS_IPV6="禁用 IPv6"
+            NET_EN_IPV6="$NET_EN_IPV6"
+            NET_DNS="$NET_DNS"
+            NET_DIS_IPV6_TIP="$NET_DIS_IPV6_TIP"
+            NET_DIS_IPV6_CONFIRM="$NET_DIS_IPV6_CONFIRM"
+            NET_DNS_CUSTOM="$NET_DNS_CUSTOM"
+            NET_DNS1_PROMPT="请输入主 DNS"
+            NET_DNS2_PROMPT="请输入副 DNS（可选）"
+            CLEAN_TITLE="系统清理"
+            CLEAN_BEFORE="清理前可用空间"
+            CLEAN_DOCKER="$CLEAN_DOCKER"
+            CLEAN_DOCKER_DONE="Docker 清理完成"
+            CLEAN_PKG="清理软件包缓存..."
+            CLEAN_PKG_DONE="软件包缓存清理完成"
+            CLEAN_LOG="$CLEAN_LOG"
+            CLEAN_LOG_DONE="$CLEAN_LOG_DONE"
+            CLEAN_AFTER="清理后可用空间"
+            CLEAN_DONE="$CLEAN_DONE"
+            DEPLOY_TITLE="已保存的部署信息"
+            DEPLOY_EMPTY="$DEPLOY_EMPTY"
+            UPDATE_TITLE="检查脚本更新"
+            UPDATE_CURRENT="当前版本"
+            UPDATE_CHECKING="$UPDATE_CHECKING"
+            UPDATE_FAIL="$UPDATE_FAIL"
+            UPDATE_LATEST="当前已是最新版本"
+            UPDATE_FOUND="发现新版本"
+            UPDATE_CONFIRM="是否更新到"
+            UPDATE_DONE="脚本已更新，请重新运行"
+            DOMAIN_PROMPT="是否为此服务配置域名？(y/n)"
+            DOMAIN_INPUT="请输入域名（如 example.com，不含 www）"
+            ACME_TITLE="acme.sh + Cloudflare DNS 申请证书"
+            ACME_EMAIL="请输入邮箱地址"
+            ACME_CF_TIP="$ACME_CF_TIP"
+            ACME_CF_GLOBAL="$ACME_CF_GLOBAL"
+            ACME_CF_TOKEN="$ACME_CF_TOKEN"
+            ACME_CF_KEY_PROMPT="请输入 Cloudflare Global API Key"
+            ACME_CF_EMAIL_PROMPT="请输入 Cloudflare 账号邮箱"
+            ACME_CF_TOKEN_PROMPT="请输入 Cloudflare API Token"
+            ACME_DOMAIN_PROMPT="请输入要申请证书的主域名（如 example.com）"
+            ACME_ISSUING="$ACME_ISSUING"
+            ACME_DONE="$ACME_DONE"
+            ACME_CERT_PATH="证书路径"
+            ACME_KEY_PATH="私钥路径"
+            ACME_FAIL="$ACME_FAIL"
+            ;;
+    esac
+}
+
+
+# ============================================================
 # 工具函数
 # ============================================================
 
@@ -28,7 +955,7 @@ print_banner() {
     clear
     echo -e "${CYAN}${BOLD}"
     echo "╔══════════════════════════════════════════╗"
-    echo "║         noob ra2 VPS 工具箱              ║"
+    echo "║         $BANNER_TITLE              ║"
     echo "║              v${VERSION}                       ║"
     echo "╚══════════════════════════════════════════╝"
     echo -e "${NC}"
@@ -56,7 +983,7 @@ security_tip() { echo -e "${PURPLE}🔒 安全提示：$1${NC}"; }
 
 # 确认操作
 confirm() {
-    read -p "$(echo -e ${YELLOW}"$1 (y/n)："${NC})" CONFIRM
+    read -p "$(echo -e ${YELLOW}"$1 $MSG_CONFIRM_YN："${NC})" CONFIRM
     [ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ]
 }
 
@@ -353,9 +1280,9 @@ setup_cert() {
 ask_domain() {
     local SERVICE=$1
     echo ""
-    read -p "$(echo -e ${YELLOW}"是否为 $SERVICE 配置域名？(y/n)："${NC})" HAS_DOMAIN
+    read -p "$(echo -e ${YELLOW}"$DOMAIN_PROMPT："${NC})" HAS_DOMAIN
     if [ "$HAS_DOMAIN" = "y" ] || [ "$HAS_DOMAIN" = "Y" ]; then
-        read -p "请输入域名（如 example.com，不含 www）：" INPUT_DOMAIN
+        read -p "$DOMAIN_INPUT：" INPUT_DOMAIN
         echo $INPUT_DOMAIN
     else
         echo ""
@@ -367,7 +1294,7 @@ ask_domain() {
 # ============================================================
 init_vps() {
     print_banner
-    echo -e "${BOLD}=== VPS 初始化加固 ===${NC}\n"
+    echo -e "${BOLD}=== $INIT_TITLE ===${NC}\n"
 
     install_base_only
 
@@ -379,7 +1306,7 @@ init_vps() {
     echo "4. 美国/纽约 (America/New_York)"
     echo "5. 欧洲/伦敦 (Europe/London)"
     echo "6. 自定义"
-    read -p "请选择 [1-6，默认 1]：" TZ_CHOICE
+    read -p "$INIT_TZ_PROMPT：" TZ_CHOICE
     TZ_CHOICE=${TZ_CHOICE:-1}
 
     case $TZ_CHOICE in
@@ -388,7 +1315,7 @@ init_vps() {
         3) TIMEZONE="UTC" ;;
         4) TIMEZONE="America/New_York" ;;
         5) TIMEZONE="Europe/London" ;;
-        6) read -p "请输入时区（如 Asia/Singapore）：" TIMEZONE ;;
+        6) read -p "$INIT_TZ_CUSTOM：" TIMEZONE ;;
         *) TIMEZONE="Asia/Tokyo" ;;
     esac
 
@@ -419,8 +1346,8 @@ init_vps() {
             RECOMMENDED_SWAP="1G"
         fi
 
-        info "检测到 RAM：${RAM_MB}MB，推荐 Swap：${RECOMMENDED_SWAP}"
-        read -p "请输入 Swap 大小（直接回车使用推荐值 ${RECOMMENDED_SWAP}）：" SWAP_SIZE
+        info "$INIT_RAM_DETECT：${RAM_MB}MB，$INIT_SWAP_REC：${RECOMMENDED_SWAP}"
+        read -p "$INIT_SWAP_PROMPT ${RECOMMENDED_SWAP}：" SWAP_SIZE
         SWAP_SIZE=${SWAP_SIZE:-$RECOMMENDED_SWAP}
 
         fallocate -l $SWAP_SIZE /swapfile
@@ -428,7 +1355,7 @@ init_vps() {
         mkswap /swapfile >/dev/null 2>&1
         swapon /swapfile
         echo "/swapfile none swap sw 0 0" >> /etc/fstab
-        success "Swap ${SWAP_SIZE} 已配置"
+        success "$INIT_SWAP_DONE ${SWAP_SIZE}"
     else
         success "Swap 已配置，跳过"
     fi
@@ -445,8 +1372,8 @@ init_vps() {
     # SSH 端口
     CURRENT_SSH_PORT=$(grep "^Port" /etc/ssh/sshd_config 2>/dev/null | awk '{print $2}' | head -n1)
     CURRENT_SSH_PORT=${CURRENT_SSH_PORT:-22}
-    info "当前 SSH 端口：$CURRENT_SSH_PORT"
-    read -p "请输入新 SSH 端口（直接回车保持 $CURRENT_SSH_PORT）：" SSH_PORT
+    info "$INIT_SSH_CURRENT：$CURRENT_SSH_PORT"
+    read -p "$INIT_SSH_PROMPT $CURRENT_SSH_PORT：" SSH_PORT
     SSH_PORT=${SSH_PORT:-$CURRENT_SSH_PORT}
 
     # 防火墙配置
@@ -535,7 +1462,7 @@ wordpress_menu() {
 # ============================================================
 deploy_wordpress() {
     print_banner
-    echo -e "${BOLD}=== 安装 WordPress ===${NC}\n"
+    echo -e "${BOLD}=== $WP_INSTALL_TITLE ===${NC}\n"
 
     # 检测是否已安装
     if [ -f /opt/wordpress/docker-compose.yml ]; then
@@ -556,7 +1483,7 @@ deploy_wordpress() {
                 ;;
             *)
                 info "操作已取消"
-                read -p "按回车键继续..."
+                read -p "$MSG_PRESS_ENTER"
                 return
                 ;;
         esac
@@ -622,14 +1549,14 @@ EOF
 数据库 Root 密码：$WP_ROOT_PASS"
 
     success "WordPress 部署完成！"
-    info "访问地址：$ACCESS"
+    info "$WP_ACCESS：$ACCESS"
     warning "账号信息已保存到 /root/deploy_info.txt"
     echo ""
 }
 
 uninstall_wordpress() {
     print_banner
-    echo -e "${BOLD}=== 卸载 WordPress ===${NC}\n"
+    echo -e "${BOLD}=== $WP_UNINSTALL_TITLE ===${NC}\n"
 
     if [ ! -d /opt/wordpress ]; then
         error "未检测到 WordPress 安装"
@@ -656,7 +1583,7 @@ uninstall_wordpress() {
         success "容器已删除，数据目录保留在 /opt/wordpress"
     fi
 
-    read -p "请输入 WordPress 的域名（没有域名直接回车跳过）：" WP_DOMAIN
+    read -p "$WP_DOMAIN_PROMPT：" WP_DOMAIN
     if [ -n "$WP_DOMAIN" ]; then
         rm -f /etc/nginx/sites-enabled/$WP_DOMAIN
         rm -f /etc/nginx/sites-available/$WP_DOMAIN
@@ -698,7 +1625,7 @@ xboard_menu() {
 # ============================================================
 deploy_xboard() {
     print_banner
-    echo -e "${BOLD}=== 安装 XBoard ===${NC}\n"
+    echo -e "${BOLD}=== $XB_INSTALL_TITLE ===${NC}\n"
 
     # 检测是否已安装
     if [ -f /opt/xboard/docker-compose.yml ]; then
@@ -769,7 +1696,7 @@ EOF
     sleep 8
 
     echo ""
-    warning "即将进入 XBoard 安装向导，请按以下信息填写："
+    warning "$XB_WIZARD_TIP："
     echo -e "  数据库地址：${GREEN}db${NC}"
     echo -e "  数据库端口：${GREEN}3306${NC}"
     echo -e "  数据库名：${GREEN}xboard${NC}"
@@ -808,7 +1735,7 @@ EOF
 
 uninstall_xboard() {
     print_banner
-    echo -e "${BOLD}=== 卸载 XBoard ===${NC}\n"
+    echo -e "${BOLD}=== $XB_UNINSTALL_TITLE ===${NC}\n"
 
     if [ ! -d /opt/xboard ]; then
         error "未检测到 XBoard 安装"
@@ -832,7 +1759,7 @@ uninstall_xboard() {
         success "数据已删除"
     else
         rm -f /opt/xboard/docker-compose.yml
-        success "容器已删除，数据目录保留在 /opt/xboard"
+        success "$XB_DATA_KEPT"
     fi
 
     read -p "请输入 XBoard 的域名（没有域名直接回车跳过）：" XB_DOMAIN
@@ -876,7 +1803,7 @@ threeui_menu() {
 # ============================================================
 deploy_3xui() {
     print_banner
-    echo -e "${BOLD}=== 安装 3x-ui ===${NC}\n"
+    echo -e "${BOLD}=== $UI_INSTALL_TITLE ===${NC}\n"
 
     # 检测是否已安装
     if command -v x-ui >/dev/null 2>&1 || [ -d /usr/local/x-ui ]; then
@@ -908,7 +1835,7 @@ deploy_3xui() {
 
 uninstall_3xui() {
     print_banner
-    echo -e "${BOLD}=== 卸载 3x-ui ===${NC}\n"
+    echo -e "${BOLD}=== $UI_UNINSTALL_TITLE ===${NC}\n"
 
     if ! command -v x-ui >/dev/null 2>&1; then
         error "未检测到 3x-ui 安装"
@@ -935,11 +1862,11 @@ uninstall_3xui() {
 # ============================================================
 setup_acme_cert() {
     print_banner
-    echo -e "${BOLD}=== acme.sh + Cloudflare DNS 申请证书 ===${NC}\n"
+    echo -e "${BOLD}=== $ACME_TITLE ===${NC}\n"
 
     # 安装 acme.sh
     if [ "$ACME_INSTALLED" = false ]; then
-        read -p "请输入邮箱地址：" ACME_EMAIL
+        read -p "$ACME_EMAIL：" ACME_EMAIL_INPUT; ACME_EMAIL=$ACME_EMAIL_INPUT
         curl https://get.acme.sh | sh -s email=$ACME_EMAIL >/dev/null 2>&1
         source ~/.bashrc
         ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt >/dev/null 2>&1
@@ -958,16 +1885,16 @@ setup_acme_cert() {
     CF_AUTH_TYPE=${CF_AUTH_TYPE:-2}
 
     if [ "$CF_AUTH_TYPE" = "1" ]; then
-        read -p "请输入 Cloudflare Global API Key：" CF_KEY_INPUT
-        read -p "请输入 Cloudflare 账号邮箱：" CF_EMAIL_INPUT
+        read -p "$ACME_CF_KEY_PROMPT：" CF_KEY_INPUT
+        read -p "$ACME_CF_EMAIL_PROMPT：" CF_EMAIL_INPUT
         export CF_Key="$CF_KEY_INPUT"
         export CF_Email="$CF_EMAIL_INPUT"
     else
-        read -p "请输入 Cloudflare API Token：" CF_TOKEN_INPUT
+        read -p "$ACME_CF_TOKEN_PROMPT：" CF_TOKEN_INPUT
         export CF_Token="$CF_TOKEN_INPUT"
     fi
 
-    read -p "请输入要申请证书的主域名（如 example.com）：" CERT_DOMAIN
+    read -p "$ACME_DOMAIN_PROMPT：" CERT_DOMAIN
 
     info "申请通配符证书中..."
     ~/.acme.sh/acme.sh --issue --dns dns_cf \
@@ -992,8 +1919,8 @@ setup_acme_cert() {
 
         print_line
         success "证书申请完成！"
-        info "证书路径：/root/cert/$CERT_DOMAIN/cert.crt"
-        info "私钥路径：/root/cert/$CERT_DOMAIN/private.key"
+        info "$ACME_CERT_PATH：/root/cert/$CERT_DOMAIN/cert.crt"
+        info "$ACME_KEY_PATH：/root/cert/$CERT_DOMAIN/private.key"
     else
         error "证书申请失败，请检查域名解析和 API Key 是否正确"
     fi
@@ -1006,7 +1933,7 @@ setup_acme_cert() {
 ssh_security_menu() {
     while true; do
         print_banner
-        echo -e "${BOLD}=== SSH 安全加固 ===${NC}\n"
+        echo -e "${BOLD}=== $SSH_TITLE ===${NC}\n"
         echo "1. 植入 SSH 公钥"
         echo "2. 禁用密码登录"
         echo "0. 返回主菜单"
@@ -1023,10 +1950,10 @@ ssh_security_menu() {
 }
 
 ssh_add_key() {
-    echo -e "\n${BOLD}=== 植入 SSH 公钥 ===${NC}\n"
+    echo -e "\n${BOLD}=== $SSH_KEY_TITLE ===${NC}\n"
     security_tip "植入公钥后请先验证 Key 登录正常，再执行禁用密码登录操作"
     echo ""
-    echo "请粘贴你的 SSH 公钥内容（以 ssh-rsa 或 ssh-ed25519 开头）："
+    echo "$SSH_KEY_PROMPT："
     read -r SSH_PUB_KEY
 
     if [[ ! "$SSH_PUB_KEY" =~ ^ssh- ]]; then
@@ -1045,7 +1972,7 @@ ssh_add_key() {
 }
 
 ssh_disable_password() {
-    echo -e "\n${BOLD}=== 禁用密码登录 ===${NC}\n"
+    echo -e "\n${BOLD}=== $SSH_DISABLE_TITLE ===${NC}\n"
 
     # 检查是否有公钥
     if [ ! -f ~/.ssh/authorized_keys ] || [ ! -s ~/.ssh/authorized_keys ]; then
@@ -1077,7 +2004,7 @@ ssh_disable_password() {
 firewall_menu() {
     while true; do
         print_banner
-        echo -e "${BOLD}=== 防火墙管理 ===${NC}\n"
+        echo -e "${BOLD}=== $FW_TITLE ===${NC}\n"
         echo "1. 查看当前规则"
         echo "2. 添加放行端口"
         echo "3. 删除端口规则"
@@ -1089,8 +2016,8 @@ firewall_menu() {
         case $FW_CHOICE in
             1) fw_status ;;
             2)
-                read -p "请输入要放行的端口：" FW_PORT
-                read -p "协议 (tcp/udp，默认 tcp)：" FW_PROTO
+                read -p "$FW_PORT_PROMPT：" FW_PORT
+                read -p "$FW_PROTO_PROMPT：" FW_PROTO
                 FW_PROTO=${FW_PROTO:-tcp}
                 fw_allow_port $FW_PORT $FW_PROTO
                 success "端口 $FW_PORT/$FW_PROTO 已放行"
@@ -1117,7 +2044,7 @@ firewall_menu() {
 system_info_menu() {
     while true; do
         print_banner
-        echo -e "${BOLD}=== 系统信息与检测 ===${NC}\n"
+        echo -e "${BOLD}=== $SYS_TITLE ===${NC}\n"
         echo "1. 系统信息概览"
         echo "2. 完整硬件信息"
         echo "3. 流媒体解锁检测"
@@ -1272,7 +2199,7 @@ check_ip_quality() {
 docker_menu() {
     while true; do
         print_banner
-        echo -e "${BOLD}=== Docker 容器管理 ===${NC}\n"
+        echo -e "${BOLD}=== $DOCKER_TITLE ===${NC}\n"
         echo "1. 查看所有容器状态"
         echo "2. 重启某个容器"
         echo "3. 停止某个容器"
@@ -1292,7 +2219,7 @@ docker_menu() {
                 echo ""
                 docker ps --format "{{.Names}}"
                 echo ""
-                read -p "请输入容器名称：" CONTAINER_NAME
+                read -p "$DOCKER_NAME_PROMPT：" CONTAINER_NAME
                 docker restart $CONTAINER_NAME && success "容器 $CONTAINER_NAME 已重启"
                 ;;
             3)
@@ -1309,7 +2236,7 @@ docker_menu() {
                 docker ps --format "{{.Names}}"
                 echo ""
                 read -p "请输入容器名称：" CONTAINER_NAME
-                read -p "显示最后多少行日志（默认 50）：" LOG_LINES
+                read -p "$DOCKER_LOG_LINES：" LOG_LINES
                 LOG_LINES=${LOG_LINES:-50}
                 docker logs --tail $LOG_LINES $CONTAINER_NAME
                 ;;
@@ -1347,7 +2274,7 @@ docker_menu() {
 backup_menu() {
     while true; do
         print_banner
-        echo -e "${BOLD}=== 备份与恢复 ===${NC}\n"
+        echo -e "${BOLD}=== $BACKUP_TITLE ===${NC}\n"
         echo "1. 立即备份所有服务数据"
         echo "2. 恢复备份"
         echo "3. 查看现有备份列表"
@@ -1370,7 +2297,7 @@ backup_menu() {
 }
 
 do_backup() {
-    echo -e "\n${BOLD}=== 立即备份 ===${NC}\n"
+    echo -e "\n${BOLD}=== $BACKUP_NOW ===${NC}\n"
     BACKUP_DIR="/root/backup"
     BACKUP_FILE="$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).tar.gz"
     mkdir -p $BACKUP_DIR
@@ -1384,13 +2311,13 @@ do_backup() {
     AFTER=$(df -h / | tail -1 | awk '{print $4}')
 
     success "备份完成！"
-    info "备份文件：$BACKUP_FILE"
-    info "备份大小：$BACKUP_SIZE"
+    info "$BACKUP_FILE：$BACKUP_FILE"
+    info "$BACKUP_SIZE：$BACKUP_SIZE"
     echo ""
 }
 
 do_restore() {
-    echo -e "\n${BOLD}=== 恢复备份 ===${NC}\n"
+    echo -e "\n${BOLD}=== $BACKUP_RESTORE ===${NC}\n"
     BACKUP_DIR="/root/backup"
 
     if [ ! -d "$BACKUP_DIR" ] || [ -z "$(ls -A $BACKUP_DIR 2>/dev/null)" ]; then
@@ -1400,7 +2327,7 @@ do_restore() {
 
     list_backups
     echo ""
-    read -p "请输入要恢复的备份文件名（含路径）：" RESTORE_FILE
+    read -p "$BACKUP_RESTORE_FILE：" RESTORE_FILE
 
     if [ ! -f "$RESTORE_FILE" ]; then
         error "备份文件不存在"
@@ -1444,7 +2371,7 @@ setup_auto_backup() {
     echo "2. 每周备份一次（周日凌晨 3 点）"
     read -p "请选择 [1-2]：" AUTO_CHOICE
 
-    read -p "保留最近几份备份（默认 7）：" KEEP_COUNT
+    read -p "$BACKUP_KEEP_PROMPT：" KEEP_COUNT
     KEEP_COUNT=${KEEP_COUNT:-7}
 
     BACKUP_SCRIPT="/root/auto_backup.sh"
@@ -1475,7 +2402,7 @@ EOF
 # ============================================================
 install_warp() {
     print_banner
-    echo -e "${BOLD}=== 安装 WARP（解决送中）===${NC}\n"
+    echo -e "${BOLD}=== $WARP_TITLE ===${NC}\n"
 
     security_tip "安装 WARP 会修改网络配置，建议先备份重要数据"
     echo ""
@@ -1497,7 +2424,7 @@ install_warp() {
 network_menu() {
     while true; do
         print_banner
-        echo -e "${BOLD}=== 网络优化 ===${NC}\n"
+        echo -e "${BOLD}=== $NET_TITLE ===${NC}\n"
         echo "1. IPv4 优先"
         echo "2. IPv6 优先"
         echo "3. 禁用 IPv6"
@@ -1549,8 +2476,8 @@ network_menu() {
                         success "已切换到 Cloudflare DNS"
                         ;;
                     3)
-                        read -p "请输入主 DNS：" DNS1
-                        read -p "请输入副 DNS（可选）：" DNS2
+                        read -p "$NET_DNS1_PROMPT：" DNS1
+                        read -p "$NET_DNS2_PROMPT：" DNS2
                         echo "nameserver $DNS1" > /etc/resolv.conf
                         [ -n "$DNS2" ] && echo "nameserver $DNS2" >> /etc/resolv.conf
                         success "DNS 已更新"
@@ -1570,10 +2497,10 @@ network_menu() {
 # ============================================================
 system_clean() {
     print_banner
-    echo -e "${BOLD}=== 系统清理 ===${NC}\n"
+    echo -e "${BOLD}=== $CLEAN_TITLE ===${NC}\n"
 
     BEFORE=$(df -h / | tail -1 | awk '{print $4}')
-    info "清理前可用空间：$BEFORE"
+    info "$CLEAN_BEFORE：$BEFORE"
     echo ""
 
     # Docker 清理
@@ -1607,7 +2534,7 @@ system_clean() {
     echo ""
     print_line
     info "清理前可用空间：$BEFORE"
-    info "清理后可用空间：$AFTER"
+    info "$CLEAN_AFTER：$AFTER"
     success "系统清理完成！"
     echo ""
     read -p "按回车键继续..."
@@ -1618,7 +2545,7 @@ system_clean() {
 # ============================================================
 show_deploy_info() {
     print_banner
-    echo -e "${BOLD}=== 已保存的部署信息 ===${NC}\n"
+    echo -e "${BOLD}=== $DEPLOY_TITLE ===${NC}\n"
 
     if [ ! -f /root/deploy_info.txt ] || [ ! -s /root/deploy_info.txt ]; then
         info "暂无部署信息，部署服务后会自动保存"
@@ -1634,8 +2561,8 @@ show_deploy_info() {
 # ============================================================
 check_update() {
     print_banner
-    echo -e "${BOLD}=== 检查脚本更新 ===${NC}\n"
-    info "当前版本：v$VERSION"
+    echo -e "${BOLD}=== $UPDATE_TITLE ===${NC}\n"
+    info "$UPDATE_CURRENT：v$VERSION"
     info "检查最新版本..."
 
     LATEST_VERSION=$(curl -s $GITHUB_RAW 2>/dev/null | grep "^VERSION=" | cut -d'"' -f2)
@@ -1648,14 +2575,14 @@ check_update() {
     fi
 
     if [ "$LATEST_VERSION" = "$VERSION" ]; then
-        success "当前已是最新版本 v$VERSION"
+        success "$UPDATE_LATEST v$VERSION"
     else
-        info "发现新版本：v$LATEST_VERSION"
+        info "$UPDATE_FOUND：v$LATEST_VERSION"
         if confirm "是否更新到 v$LATEST_VERSION？"; then
             SCRIPT_PATH=$(realpath $0)
             curl -s $GITHUB_RAW -o $SCRIPT_PATH
             chmod +x $SCRIPT_PATH
-            success "脚本已更新到 v$LATEST_VERSION，请重新运行"
+            success "$UPDATE_DONE v$LATEST_VERSION"
             exit 0
         fi
     fi
@@ -1702,7 +2629,7 @@ main_menu() {
         print_line
         echo -e "                    ${PURPLE}by noob ra2${NC}"
         print_line
-        read -p "请选择操作 [0-15]：" MAIN_CHOICE
+        read -p "$MENU_PROMPT：" MAIN_CHOICE
 
         case $MAIN_CHOICE in
             1)  init_vps ;;
@@ -1739,6 +2666,7 @@ main_menu() {
 # 入口
 # ============================================================
 check_root
+select_language
 detect_os
 check_installed
 main_menu
