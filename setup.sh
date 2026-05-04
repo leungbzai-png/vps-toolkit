@@ -508,6 +508,28 @@ EOF
     echo ""
 }
 
+
+# ============================================================
+# 2. WordPress 菜单
+# ============================================================
+wordpress_menu() {
+    while true; do
+        print_banner
+        echo -e "${BOLD}=== WordPress ===${NC}\n"
+        echo "1. 安装 WordPress"
+        echo "2. 卸载 WordPress"
+        echo "0. 返回主菜单"
+        print_line
+        read -p "请选择 [0-2]：" WP_CHOICE
+        case $WP_CHOICE in
+            1) deploy_wordpress ;;
+            2) uninstall_wordpress ;;
+            0) break ;;
+            *) error "无效选项" ;;
+        esac
+    done
+}
+
 # ============================================================
 # 2. 部署 WordPress
 # ============================================================
@@ -578,6 +600,72 @@ EOF
     info "访问地址：$ACCESS"
     warning "账号信息已保存到 /root/deploy_info.txt"
     echo ""
+}
+
+uninstall_wordpress() {
+    print_banner
+    echo -e "${BOLD}=== 卸载 WordPress ===${NC}\n"
+
+    if [ ! -d /opt/wordpress ]; then
+        error "未检测到 WordPress 安装"
+        read -p "按回车键继续..."
+        return
+    fi
+
+    security_tip "卸载操作不可逆，请确认已备份重要数据"
+    if ! confirm "确认卸载 WordPress？"; then
+        info "操作已取消"
+        return
+    fi
+
+    info "停止并删除容器..."
+    cd /opt/wordpress && docker compose down >/dev/null 2>&1
+    success "容器已停止"
+
+    if confirm "是否同时删除所有数据（数据库、文章、媒体文件）？"; then
+        cd /opt/wordpress && docker compose down -v >/dev/null 2>&1
+        rm -rf /opt/wordpress
+        success "数据已删除"
+    else
+        rm -f /opt/wordpress/docker-compose.yml
+        success "容器已删除，数据目录保留在 /opt/wordpress"
+    fi
+
+    read -p "请输入 WordPress 的域名（没有域名直接回车跳过）：" WP_DOMAIN
+    if [ -n "$WP_DOMAIN" ]; then
+        rm -f /etc/nginx/sites-enabled/$WP_DOMAIN
+        rm -f /etc/nginx/sites-available/$WP_DOMAIN
+        rm -f /etc/nginx/conf.d/$WP_DOMAIN
+        nginx -t >/dev/null 2>&1 && systemctl reload nginx >/dev/null 2>&1
+        success "Nginx 配置已删除"
+    fi
+
+    success "WordPress 已卸载完成"
+    echo ""
+    read -p "按回车键继续..."
+}
+
+
+
+# ============================================================
+# 3. XBoard 菜单
+# ============================================================
+xboard_menu() {
+    while true; do
+        print_banner
+        echo -e "${BOLD}=== XBoard ===${NC}\n"
+        echo "1. 安装 XBoard"
+        echo "2. 卸载 XBoard"
+        echo "0. 返回主菜单"
+        print_line
+        read -p "请选择 [0-2]：" XB_CHOICE
+        case $XB_CHOICE in
+            1) deploy_xboard ;;
+            2) uninstall_xboard ;;
+            0) break ;;
+            *) error "无效选项" ;;
+        esac
+    done
 }
 
 # ============================================================
@@ -668,6 +756,71 @@ EOF
     echo ""
 }
 
+uninstall_xboard() {
+    print_banner
+    echo -e "${BOLD}=== 卸载 XBoard ===${NC}\n"
+
+    if [ ! -d /opt/xboard ]; then
+        error "未检测到 XBoard 安装"
+        read -p "按回车键继续..."
+        return
+    fi
+
+    security_tip "卸载操作不可逆，请确认已备份重要数据"
+    if ! confirm "确认卸载 XBoard？"; then
+        info "操作已取消"
+        return
+    fi
+
+    info "停止并删除容器..."
+    cd /opt/xboard && docker compose down >/dev/null 2>&1
+    success "容器已停止"
+
+    if confirm "是否同时删除所有数据（数据库、用户数据）？"; then
+        cd /opt/xboard && docker compose down -v >/dev/null 2>&1
+        rm -rf /opt/xboard
+        success "数据已删除"
+    else
+        rm -f /opt/xboard/docker-compose.yml
+        success "容器已删除，数据目录保留在 /opt/xboard"
+    fi
+
+    read -p "请输入 XBoard 的域名（没有域名直接回车跳过）：" XB_DOMAIN
+    if [ -n "$XB_DOMAIN" ]; then
+        rm -f /etc/nginx/sites-enabled/$XB_DOMAIN
+        rm -f /etc/nginx/sites-available/$XB_DOMAIN
+        rm -f /etc/nginx/conf.d/$XB_DOMAIN
+        nginx -t >/dev/null 2>&1 && systemctl reload nginx >/dev/null 2>&1
+        success "Nginx 配置已删除"
+    fi
+
+    success "XBoard 已卸载完成"
+    echo ""
+    read -p "按回车键继续..."
+}
+
+# ============================================================
+# 4. 3x-ui 菜单
+# ============================================================
+threeui_menu() {
+    while true; do
+        print_banner
+        echo -e "${BOLD}=== 3x-ui ===${NC}\n"
+        echo "1. 安装 3x-ui"
+        echo "2. 卸载 3x-ui"
+        echo "0. 返回主菜单"
+        print_line
+        read -p "请选择 [0-2]：" UI_CHOICE
+        case $UI_CHOICE in
+            1) deploy_3xui ;;
+            2) uninstall_3xui ;;
+            0) break ;;
+            *) error "无效选项" ;;
+        esac
+    done
+}
+
+
 # ============================================================
 # 4. 部署 3x-ui
 # ============================================================
@@ -683,6 +836,30 @@ deploy_3xui() {
     warning "请记录面板账号密码并保存到 /root/deploy_info.txt"
     echo ""
 }
+
+uninstall_3xui() {
+    print_banner
+    echo -e "${BOLD}=== 卸载 3x-ui ===${NC}\n"
+
+    if ! command -v x-ui >/dev/null 2>&1; then
+        error "未检测到 3x-ui 安装"
+        read -p "按回车键继续..."
+        return
+    fi
+
+    security_tip "卸载操作不可逆，请确认已备份重要数据"
+    if ! confirm "确认卸载 3x-ui？"; then
+        info "操作已取消"
+        return
+    fi
+
+    x-ui uninstall 2>/dev/null || bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) uninstall
+
+    success "3x-ui 已卸载完成"
+    echo ""
+    read -p "按回车键继续..."
+}
+
 
 # ============================================================
 # 5. 为面板申请域名证书（acme.sh + CF DNS）
@@ -1460,9 +1637,9 @@ main_menu() {
 
         case $MAIN_CHOICE in
             1)  init_vps ;;
-            2)  deploy_wordpress ;;
-            3)  deploy_xboard ;;
-            4)  deploy_3xui ;;
+            2)  wordpress_menu ;;
+            3)  xboard_menu ;;
+            4)  threeui_menu ;;
             5)  setup_acme_cert ;;
             6)  ssh_security_menu ;;
             7)  firewall_menu ;;
@@ -1493,4 +1670,3 @@ check_root
 detect_os
 check_installed
 main_menu
-
