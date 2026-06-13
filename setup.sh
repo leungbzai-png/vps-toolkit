@@ -1,8 +1,15 @@
 #!/bin/bash
 # ============================================================
+#  GENERATED FILE — DO NOT EDIT BY HAND.
+#  Edit lib/*.sh and modules/*.sh, then run: bash build.sh
+# ============================================================
+
+# ----- lib/common.sh -----
+
+# ============================================================
 #        noob ra2 VPS 工具箱
 #        by noob ra2
-#        版本：1.0.0
+#        版本：0.2.0
 # ============================================================
 
 # 颜色定义
@@ -16,9 +23,153 @@ NC='\033[0m'
 BOLD='\033[1m'
 
 # 版本
-VERSION="1.0.0"
-SCRIPT_VERSION="1.0.0"
+VERSION="0.2.0"
+SCRIPT_VERSION="0.2.0"
 GITHUB_RAW="https://raw.githubusercontent.com/leungbzai-png/vps-toolkit/refs/heads/main/setup.sh"
+
+# ============================================================
+# 工具函数
+# ============================================================
+
+# 打印标题
+print_banner() {
+    clear
+    echo -e "${CYAN}${BOLD}"
+    echo "╔══════════════════════════════════════════╗"
+    echo "║         $BANNER_TITLE              ║"
+    echo "║              v${SCRIPT_VERSION}                       ║"
+    echo "╚══════════════════════════════════════════╝"
+    echo -e "${NC}"
+}
+
+# 打印分隔线
+print_line() {
+    echo -e "${BLUE}──────────────────────────────────────────${NC}"
+}
+
+# 成功提示
+success() { echo -e "${GREEN}✅ $1${NC}"; }
+
+# 错误提示
+error() { echo -e "${RED}❌ $1${NC}"; }
+
+# 警告提示
+warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
+
+# 信息提示
+info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
+
+# 安全提示
+security_tip() { echo -e "${PURPLE}🔒 安全提示：$1${NC}"; }
+
+# 确认操作
+confirm() {
+    read -p "$(echo -e ${YELLOW}"$1 $MSG_CONFIRM_YN："${NC})" CONFIRM
+    [ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ]
+}
+
+# 生成随机密码
+gen_pass() {
+    tr -dc 'A-Za-z0-9!@#$%^&*' </dev/urandom | head -c 32
+}
+
+# 获取公网 IP
+get_public_ip() {
+    curl -s4 ifconfig.me 2>/dev/null || curl -s4 ip.sb 2>/dev/null || echo "无法获取"
+}
+
+# 保存部署信息
+save_info() {
+    echo "$1" >> /root/deploy_info.txt
+}
+
+# ----- lib/detect.sh -----
+
+# ============================================================
+# 系统检测
+# ============================================================
+detect_os() {
+    if [ -f /etc/os-release ]; then
+        _SAVED_VERSION=$VERSION
+        . /etc/os-release
+        OS_NAME=$ID
+        OS_VER=$VERSION_ID
+        OS_PRETTY=$PRETTY_NAME
+        VERSION=$_SAVED_VERSION
+    else
+        error "无法检测系统版本"
+        exit 1
+    fi
+
+    case $OS_NAME in
+        debian|ubuntu)
+            PKG_MANAGER="apt"
+            PKG_UPDATE="apt update -y"
+            PKG_INSTALL="apt install -y"
+            FIREWALL="ufw"
+            ;;
+        centos|rhel|almalinux|rocky)
+            if command -v dnf >/dev/null 2>&1; then
+                PKG_MANAGER="dnf"
+                PKG_UPDATE="dnf update -y"
+                PKG_INSTALL="dnf install -y"
+            else
+                PKG_MANAGER="yum"
+                PKG_UPDATE="yum update -y"
+                PKG_INSTALL="yum install -y"
+            fi
+            FIREWALL="firewalld"
+            ;;
+        fedora)
+            PKG_MANAGER="dnf"
+            PKG_UPDATE="dnf update -y"
+            PKG_INSTALL="dnf install -y"
+            FIREWALL="firewalld"
+            ;;
+        alpine)
+            PKG_MANAGER="apk"
+            PKG_UPDATE="apk update"
+            PKG_INSTALL="apk add"
+            FIREWALL="iptables"
+            ;;
+        *)
+            warning "未经测试的系统：$OS_PRETTY，将尝试继续..."
+            PKG_MANAGER="apt"
+            PKG_UPDATE="apt update -y"
+            PKG_INSTALL="apt install -y"
+            FIREWALL="ufw"
+            ;;
+    esac
+
+    success "检测到系统：$OS_PRETTY"
+}
+
+# 检测已安装组件
+check_installed() {
+    DOCKER_INSTALLED=false
+    NGINX_INSTALLED=false
+    CERTBOT_INSTALLED=false
+    ACME_INSTALLED=false
+    UFW_INSTALLED=false
+    FAIL2BAN_INSTALLED=false
+
+    command -v docker >/dev/null 2>&1 && DOCKER_INSTALLED=true
+    command -v nginx >/dev/null 2>&1 && NGINX_INSTALLED=true
+    command -v certbot >/dev/null 2>&1 && CERTBOT_INSTALLED=true
+    [ -f ~/.acme.sh/acme.sh ] && ACME_INSTALLED=true
+    command -v ufw >/dev/null 2>&1 && UFW_INSTALLED=true
+    command -v fail2ban-server >/dev/null 2>&1 && FAIL2BAN_INSTALLED=true
+}
+
+# 检查 root 权限
+check_root() {
+    if [ "$EUID" -ne 0 ]; then
+        error "请使用 root 权限运行此脚本"
+        exit 1
+    fi
+}
+
+# ----- lib/i18n.sh -----
 
 # ============================================================
 # 语言包 / Language Pack
@@ -57,7 +208,7 @@ load_language() {
             MSG_SECURITY="安全提示"
             MSG_CONFIRM_YN="(y/n)"
             MSG_PRESS_ENTER="按 Enter 繼續..."
-            MSG_CANCEL="$MSG_CANCEL"
+            MSG_CANCEL="操作已取消"
             MSG_BACK="返回主選單"
             MSG_INVALID="無效選項，請重新選擇"
             MSG_GOODBYE_1="感謝使用 noob ra2 VPS 工具箱"
@@ -126,7 +277,7 @@ load_language() {
             WP_REINSTALL_STOP="停止現有容器..."
             WP_STARTING="啟動 WordPress 容器..."
             WP_STARTED="WordPress 容器已啟動"
-            WP_DONE="$WP_DONE"
+            WP_DONE="WordPress 部署完成！"
             WP_ACCESS="訪問地址"
             WP_SAVED="帳號資訊已儲存到 /root/deploy_info.txt"
             WP_UNINSTALL_TITLE="解除安裝 WordPress"
@@ -134,7 +285,7 @@ load_language() {
             WP_UNINSTALL_TIP="解除安裝操作不可逆，請確認已備份重要資料"
             WP_UNINSTALL_CONFIRM="確認解除安裝 WordPress？"
             WP_STOP_CONTAINER="停止並刪除容器..."
-            WP_CONTAINER_STOPPED="$WP_CONTAINER_STOPPED"
+            WP_CONTAINER_STOPPED="容器已停止"
             WP_DELETE_DATA="是否同時刪除所有資料（資料庫、文章、媒體檔案）？"
             WP_DATA_DELETED="資料已刪除"
             WP_DATA_KEPT="容器已刪除，資料目錄保留在 /opt/wordpress"
@@ -147,16 +298,17 @@ load_language() {
             XB_STOPPED="檢測到 XBoard 已安裝但未運行"
             XB_WAIT_DB="等待資料庫初始化..."
             XB_WIZARD_TIP="即將進入 XBoard 安裝精靈，請按以下資訊填寫"
-            XB_DONE="$XB_DONE"
+            XB_DONE="XBoard 部署完成！"
             XB_UNINSTALL_TITLE="解除安裝 XBoard"
             XB_NOT_FOUND="未檢測到 XBoard 安裝"
             XB_UNINSTALL_CONFIRM="確認解除安裝 XBoard？"
             XB_DELETE_DATA="是否同時刪除所有資料（資料庫、用戶資料）？"
+            XB_DATA_KEPT="容器已刪除，資料目錄保留在 /opt/xboard"
             XB_UNINSTALL_DONE="XBoard 已解除安裝完成"
             # 3xui
             UI_INSTALL_TITLE="安裝 3x-ui"
             UI_RUNNING="檢測到 3x-ui 已安裝"
-            UI_DONE="$UI_DONE"
+            UI_DONE="3x-ui 部署完成！"
             UI_SAVE_TIP="請記錄面板帳號密碼並儲存到 /root/deploy_info.txt"
             UI_UNINSTALL_TITLE="解除安裝 3x-ui"
             UI_NOT_FOUND="未檢測到 3x-ui 安裝"
@@ -236,7 +388,7 @@ load_language() {
             NET_TITLE="網路優化"
             NET_IPV4="IPv4 優先"
             NET_IPV6="IPv6 優先"
-            NET_DIS_IPV6="$NET_DIS_IPV6"
+            NET_DIS_IPV6="禁用 IPv6"
             NET_EN_IPV6="啟用 IPv6"
             NET_DNS="切換 DNS"
             NET_DIS_IPV6_TIP="禁用 IPv6 可能影響部分服務"
@@ -248,7 +400,7 @@ load_language() {
             CLEAN_TITLE="系統清理"
             CLEAN_BEFORE="清理前可用空間"
             CLEAN_DOCKER="清理 Docker 無用映像和容器..."
-            CLEAN_DOCKER_DONE="$CLEAN_DOCKER_DONE"
+            CLEAN_DOCKER_DONE="Docker 清理完成"
             CLEAN_PKG="清理套件快取..."
             CLEAN_PKG_DONE="套件快取清理完成"
             CLEAN_LOG="清理系統日誌..."
@@ -384,6 +536,7 @@ load_language() {
             XB_NOT_FOUND="XBoard installation not found"
             XB_UNINSTALL_CONFIRM="Confirm uninstall XBoard?"
             XB_DELETE_DATA="Delete all data (database, user data)?"
+            XB_DATA_KEPT="Containers removed, data kept at /opt/xboard"
             XB_UNINSTALL_DONE="XBoard uninstalled successfully"
             UI_INSTALL_TITLE="Install 3x-ui"
             UI_RUNNING="3x-ui is already installed"
@@ -603,6 +756,7 @@ load_language() {
             XB_NOT_FOUND="XBoardのインストールが見つかりません"
             XB_UNINSTALL_CONFIRM="XBoardをアンインストールしますか？"
             XB_DELETE_DATA="全データを削除しますか（データベース、ユーザーデータ）？"
+            XB_DATA_KEPT="コンテナを削除しました。データは /opt/xboard に保持されています"
             XB_UNINSTALL_DONE="XBoardのアンインストールが完了しました"
             UI_INSTALL_TITLE="3x-ui インストール"
             UI_RUNNING="3x-uiは既にインストールされています"
@@ -735,54 +889,54 @@ load_language() {
             MSG_PRESS_ENTER="按回车键继续..."
             MSG_CANCEL="操作已取消"
             MSG_BACK="返回主菜单"
-            MSG_INVALID="$MSG_INVALID"
+            MSG_INVALID="无效选项，请重新选择"
             MSG_GOODBYE_1="感谢使用 noob ra2 VPS 工具箱"
             MSG_GOODBYE_2="愿你的服务器永远稳如磐石 🚀"
             BANNER_TITLE="noob ra2 VPS 工具箱"
             CAT_DEPLOY="一、核心部署"
             CAT_SECURITY="二、安全管理"
-            CAT_SYSINFO="三、系統資訊與檢測"
+            CAT_SYSINFO="三、系统信息与检测"
             CAT_DOCKER="四、Docker 管理"
-            CAT_BACKUP="$CAT_BACKUP"
-            CAT_NETWORK="六、網路工具"
-            CAT_MAINTAIN="七、系統維護"
+            CAT_BACKUP="五、备份与恢复"
+            CAT_NETWORK="六、网络工具"
+            CAT_MAINTAIN="七、系统维护"
             MENU_1="VPS 初始化加固"
             MENU_2="部署 WordPress"
             MENU_3="部署 XBoard"
             MENU_4="部署 3x-ui"
-            MENU_5="為面板申請域名憑證 (acme.sh + CF DNS)"
+            MENU_5="为面板申请域名证书 (acme.sh + CF DNS)"
             MENU_6="SSH 安全加固"
-            MENU_7="防火牆管理"
-            MENU_8="系統資訊與檢測"
+            MENU_7="防火墙管理"
+            MENU_8="系统信息与检测"
             MENU_9="Docker 容器管理"
-            MENU_10="$MENU_10"
-            MENU_11="$MENU_11"
-            MENU_12="$MENU_12"
-            MENU_13="$MENU_13"
-            MENU_14="$MENU_14"
-            MENU_15="$MENU_15"
+            MENU_10="备份与恢复"
+            MENU_11="安装 WARP（解决送中）"
+            MENU_12="网络优化"
+            MENU_13="系统清理"
+            MENU_14="查看部署信息"
+            MENU_15="检查脚本更新"
             MENU_0="退出"
             MENU_PROMPT="请选择操作 [0-15]"
             INIT_TITLE="VPS 初始化加固"
             INIT_TZ_TITLE="请选择时区"
-            INIT_TZ_1="$INIT_TZ_1"
-            INIT_TZ_2="$INIT_TZ_2"
+            INIT_TZ_1="亚洲/东京"
+            INIT_TZ_2="亚洲/上海"
             INIT_TZ_3="UTC"
-            INIT_TZ_4="$INIT_TZ_3"
-            INIT_TZ_5="$INIT_TZ_4"
-            INIT_TZ_6="$INIT_TZ_6"
+            INIT_TZ_4="美国/纽约"
+            INIT_TZ_5="欧洲/伦敦"
+            INIT_TZ_6="自定义"
             INIT_TZ_PROMPT="请选择 [1-6，默认 1]"
             INIT_TZ_CUSTOM="请输入时区（如 Asia/Singapore）"
             INIT_TZ_DONE="时区已设置为"
-            INIT_BBR_DONE="BBR 加速已開啟"
-            INIT_BBR_SKIP="BBR 加速已開啟，跳過"
+            INIT_BBR_DONE="BBR 加速已开启"
+            INIT_BBR_SKIP="BBR 加速已开启，跳过"
             INIT_RAM_DETECT="检测到 RAM"
             INIT_SWAP_REC="推荐 Swap"
             INIT_SWAP_PROMPT="请输入 Swap 大小（直接回车使用推荐值）"
             INIT_SWAP_DONE="Swap 已配置"
-            INIT_SWAP_SKIP="Swap 已設定，跳過"
-            INIT_DNS_DONE="DNS 已優化（Google + Cloudflare）"
-            INIT_IPV4_DONE="IPv4 優先已開啟"
+            INIT_SWAP_SKIP="Swap 已配置，跳过"
+            INIT_DNS_DONE="DNS 已优化（Google + Cloudflare）"
+            INIT_IPV4_DONE="IPv4 优先已开启"
             INIT_SSH_CURRENT="当前 SSH 端口"
             INIT_SSH_PROMPT="请输入新 SSH 端口（直接回车保持当前端口）"
             INIT_SSH_TIP="修改 SSH 端口前请确认防火墙已放行新端口"
@@ -791,137 +945,138 @@ load_language() {
             INIT_SSH_WARNING="请开启新窗口用新端口验证能否登录，确认后再关闭当前窗口！"
             INIT_DONE="VPS 初始化加固完成！"
             WP_INSTALL_TITLE="安装 WordPress"
-            WP_RUNNING="$WP_RUNNING"
-            WP_STOPPED="$WP_STOPPED"
-            WP_REINSTALL="$WP_REINSTALL"
-            WP_REINSTALL_STOP="$WP_REINSTALL_STOP"
-            WP_STARTING="$WP_STARTING"
-            WP_STARTED="$WP_STARTED"
+            WP_RUNNING="检测到 WordPress 已安装且正在运行"
+            WP_STOPPED="检测到 WordPress 已安装但未运行"
+            WP_REINSTALL="重新安装（覆盖现有配置，数据保留）"
+            WP_REINSTALL_STOP="停止现有容器..."
+            WP_STARTING="启动 WordPress 容器..."
+            WP_STARTED="WordPress 容器已启动"
             WP_DONE="WordPress 部署完成！"
             WP_ACCESS="访问地址"
-            WP_SAVED="$WP_SAVED"
+            WP_SAVED="账号信息已保存到 /root/deploy_info.txt"
             WP_UNINSTALL_TITLE="卸载 WordPress"
-            WP_NOT_FOUND="$WP_NOT_FOUND"
-            WP_UNINSTALL_TIP="$WP_UNINSTALL_TIP"
-            WP_UNINSTALL_CONFIRM="$WP_UNINSTALL_CONFIRM"
-            WP_STOP_CONTAINER="$WP_STOP_CONTAINER"
+            WP_NOT_FOUND="未检测到 WordPress 安装"
+            WP_UNINSTALL_TIP="卸载操作不可逆，请确认已备份重要数据"
+            WP_UNINSTALL_CONFIRM="确认卸载 WordPress？"
+            WP_STOP_CONTAINER="停止并删除容器..."
             WP_CONTAINER_STOPPED="容器已停止"
-            WP_DELETE_DATA="$WP_DELETE_DATA"
-            WP_DATA_DELETED="$WP_DATA_DELETED"
-            WP_DATA_KEPT="$WP_DATA_KEPT"
+            WP_DELETE_DATA="是否同时删除所有数据（数据库、文章、媒体文件）？"
+            WP_DATA_DELETED="数据已删除"
+            WP_DATA_KEPT="容器已删除，数据目录保留在 /opt/wordpress"
             WP_DOMAIN_PROMPT="请输入 WordPress 的域名（没有域名直接回车跳过）"
-            WP_NGINX_DELETED="$WP_NGINX_DELETED"
-            WP_UNINSTALL_DONE="$WP_UNINSTALL_DONE"
+            WP_NGINX_DELETED="Nginx 配置已删除"
+            WP_UNINSTALL_DONE="WordPress 已卸载完成"
             XB_INSTALL_TITLE="安装 XBoard"
-            XB_RUNNING="$XB_RUNNING"
-            XB_STOPPED="$XB_STOPPED"
-            XB_WAIT_DB="$XB_WAIT_DB"
+            XB_RUNNING="检测到 XBoard 已安装且正在运行"
+            XB_STOPPED="检测到 XBoard 已安装但未运行"
+            XB_WAIT_DB="等待数据库初始化..."
             XB_WIZARD_TIP="即将进入 XBoard 安装向导，请按以下信息填写"
             XB_DONE="XBoard 部署完成！"
             XB_UNINSTALL_TITLE="卸载 XBoard"
-            XB_NOT_FOUND="$XB_NOT_FOUND"
-            XB_UNINSTALL_CONFIRM="$XB_UNINSTALL_CONFIRM"
-            XB_DELETE_DATA="$XB_DELETE_DATA"
-            XB_UNINSTALL_DONE="$XB_UNINSTALL_DONE"
+            XB_NOT_FOUND="未检测到 XBoard 安装"
+            XB_UNINSTALL_CONFIRM="确认卸载 XBoard？"
+            XB_DELETE_DATA="是否同时删除所有数据（数据库、用户数据）？"
+            XB_DATA_KEPT="容器已删除，数据目录保留在 /opt/xboard"
+            XB_UNINSTALL_DONE="XBoard 已卸载完成"
             UI_INSTALL_TITLE="安装 3x-ui"
-            UI_RUNNING="$UI_RUNNING"
+            UI_RUNNING="检测到 3x-ui 已安装"
             UI_DONE="3x-ui 部署完成！"
-            UI_SAVE_TIP="$UI_SAVE_TIP"
+            UI_SAVE_TIP="请记录面板账号密码并保存到 /root/deploy_info.txt"
             UI_UNINSTALL_TITLE="卸载 3x-ui"
-            UI_NOT_FOUND="$UI_NOT_FOUND"
-            UI_UNINSTALL_CONFIRM="$UI_UNINSTALL_CONFIRM"
-            UI_UNINSTALL_DONE="$UI_UNINSTALL_DONE"
+            UI_NOT_FOUND="未检测到 3x-ui 安装"
+            UI_UNINSTALL_CONFIRM="确认卸载 3x-ui？"
+            UI_UNINSTALL_DONE="3x-ui 已卸载完成"
             SSH_TITLE="SSH 安全加固"
             SSH_KEY_TITLE="植入 SSH 公钥"
-            SSH_KEY_TIP="$SSH_KEY_TIP"
+            SSH_KEY_TIP="植入公钥后请先验证 Key 登录正常，再执行禁用密码登录操作"
             SSH_KEY_PROMPT="请粘贴你的 SSH 公钥内容（以 ssh-rsa 或 ssh-ed25519 开头）"
-            SSH_KEY_ERR="$SSH_KEY_ERR"
-            SSH_KEY_DONE="$SSH_KEY_DONE"
-            SSH_KEY_WARN="$SSH_KEY_WARN"
+            SSH_KEY_ERR="公钥格式不正确，应以 ssh-rsa 或 ssh-ed25519 开头"
+            SSH_KEY_DONE="SSH 公钥植入成功！"
+            SSH_KEY_WARN="请立即开启新窗口测试 Key 登录是否正常，确认后再禁用密码登录"
             SSH_DISABLE_TITLE="禁用密码登录"
             SSH_NO_KEY="未检测到 SSH 公钥，禁止执行此操作！请先植入 SSH 公钥并验证 Key 登录正常后再禁用密码"
             SSH_DISABLE_TIP1="禁用密码登录后，只能通过 SSH Key 登录"
             SSH_DISABLE_TIP2="请确保已在新窗口验证 Key 登录成功，否则将锁死服务器"
             SSH_DISABLE_CONFIRM="确认已验证 Key 登录正常，现在禁用密码登录？"
-            SSH_DISABLE_DONE="$SSH_DISABLE_DONE"
+            SSH_DISABLE_DONE="密码登录已禁用，现在只允许 Key 登录"
             FW_TITLE="防火墙管理"
-            FW_VIEW="$FW_VIEW"
-            FW_ADD="$FW_ADD"
-            FW_DEL="$FW_DEL"
-            FW_STATUS="$FW_STATUS"
+            FW_VIEW="查看当前规则"
+            FW_ADD="添加放行端口"
+            FW_DEL="删除端口规则"
+            FW_STATUS="查看防火墙状态"
             FW_PORT_PROMPT="请输入要放行的端口"
             FW_PROTO_PROMPT="协议 (tcp/udp，默认 tcp)"
             FW_ADD_DONE="端口已放行"
             FW_DEL_DONE="端口规则已删除"
             SYS_TITLE="系统信息与检测"
-            SYS_OVERVIEW="$SYS_OVERVIEW"
-            SYS_HW="$SYS_HW"
-            SYS_STREAM="$SYS_STREAM"
-            SYS_ROUTE="$SYS_ROUTE"
-            SYS_SPEED="$SYS_SPEED"
-            SYS_IP="$SYS_IP"
+            SYS_OVERVIEW="系统信息概览"
+            SYS_HW="完整硬件信息"
+            SYS_STREAM="流媒体解锁检测"
+            SYS_ROUTE="路由回程测试"
+            SYS_SPEED="网速测试"
+            SYS_IP="IP 质量检测"
             DOCKER_TITLE="Docker 容器管理"
-            DOCKER_LIST="$DOCKER_LIST"
-            DOCKER_RESTART="$DOCKER_RESTART"
-            DOCKER_STOP="$DOCKER_STOP"
-            DOCKER_LOG="$DOCKER_LOG"
-            DOCKER_UPDATE="$DOCKER_UPDATE"
-            DOCKER_RESTART_ALL="$DOCKER_RESTART_ALL"
+            DOCKER_LIST="查看所有容器状态"
+            DOCKER_RESTART="重启某个容器"
+            DOCKER_STOP="停止某个容器"
+            DOCKER_LOG="查看容器日志"
+            DOCKER_UPDATE="更新所有镜像"
+            DOCKER_RESTART_ALL="一键重启所有服务"
             DOCKER_NAME_PROMPT="请输入容器名称"
             DOCKER_STOP_CONFIRM="确认停止容器"
             DOCKER_LOG_LINES="显示最后多少行日志（默认 50）"
             BACKUP_TITLE="备份与恢复"
-            BACKUP_NOW="$BACKUP_NOW"
-            BACKUP_RESTORE="$BACKUP_RESTORE"
-            BACKUP_LIST="$BACKUP_LIST"
-            BACKUP_AUTO="$BACKUP_AUTO"
-            BACKUP_DONE="$BACKUP_DONE"
+            BACKUP_NOW="立即备份所有服务数据"
+            BACKUP_RESTORE="恢复备份"
+            BACKUP_LIST="查看现有备份列表"
+            BACKUP_AUTO="设置自动定时备份"
+            BACKUP_DONE="备份完成！"
             BACKUP_FILE="备份文件"
             BACKUP_SIZE="备份大小"
             BACKUP_RESTORE_TIP="恢复会覆盖现有数据，请确认后执行"
             BACKUP_RESTORE_CONFIRM="确认恢复备份"
             BACKUP_RESTORE_FILE="请输入要恢复的备份文件名（含路径）"
-            BACKUP_NOT_FOUND="$BACKUP_NOT_FOUND"
-            BACKUP_NO_BACKUP="$BACKUP_NO_BACKUP"
-            BACKUP_STOP_ALL="$BACKUP_STOP_ALL"
-            BACKUP_RESTORE_ING="$BACKUP_RESTORE_ING"
-            BACKUP_RESTART_ALL="$BACKUP_RESTART_ALL"
-            BACKUP_RESTORE_DONE="$BACKUP_RESTORE_DONE"
-            BACKUP_AUTO_DAILY="$BACKUP_AUTO_DAILY"
-            BACKUP_AUTO_WEEKLY="$BACKUP_AUTO_WEEKLY"
+            BACKUP_NOT_FOUND="备份文件不存在"
+            BACKUP_NO_BACKUP="暂无备份文件"
+            BACKUP_STOP_ALL="停止所有 Docker 服务..."
+            BACKUP_RESTORE_ING="恢复备份中..."
+            BACKUP_RESTART_ALL="重启所有 Docker 服务..."
+            BACKUP_RESTORE_DONE="备份恢复完成！"
+            BACKUP_AUTO_DAILY="每天备份一次（凌晨 3 点）"
+            BACKUP_AUTO_WEEKLY="每周备份一次（周日凌晨 3 点）"
             BACKUP_KEEP_PROMPT="保留最近几份备份（默认 7）"
             BACKUP_AUTO_DONE="自动备份已设置！保留最近"
             BACKUP_AUTO_DONE2="份备份"
             WARP_TITLE="安装 WARP（解决送中）"
-            WARP_TIP="$WARP_TIP"
-            WARP_CONFIRM="$WARP_CONFIRM"
+            WARP_TIP="安装 WARP 会修改网络配置，建议先备份重要数据"
+            WARP_CONFIRM="确认安装 WARP？"
             NET_TITLE="网络优化"
-            NET_IPV4="$NET_IPV4"
-            NET_IPV6="$NET_IPV6"
+            NET_IPV4="IPv4 优先"
+            NET_IPV6="IPv6 优先"
             NET_DIS_IPV6="禁用 IPv6"
-            NET_EN_IPV6="$NET_EN_IPV6"
-            NET_DNS="$NET_DNS"
-            NET_DIS_IPV6_TIP="$NET_DIS_IPV6_TIP"
-            NET_DIS_IPV6_CONFIRM="$NET_DIS_IPV6_CONFIRM"
-            NET_DNS_CUSTOM="$NET_DNS_CUSTOM"
+            NET_EN_IPV6="启用 IPv6"
+            NET_DNS="切换 DNS"
+            NET_DIS_IPV6_TIP="禁用 IPv6 可能影响部分服务"
+            NET_DIS_IPV6_CONFIRM="确认禁用 IPv6？"
+            NET_DNS_CUSTOM="自定义 DNS"
             NET_DNS1_PROMPT="请输入主 DNS"
             NET_DNS2_PROMPT="请输入副 DNS（可选）"
             CLEAN_TITLE="系统清理"
             CLEAN_BEFORE="清理前可用空间"
-            CLEAN_DOCKER="$CLEAN_DOCKER"
+            CLEAN_DOCKER="清理 Docker 无用镜像和容器..."
             CLEAN_DOCKER_DONE="Docker 清理完成"
             CLEAN_PKG="清理软件包缓存..."
             CLEAN_PKG_DONE="软件包缓存清理完成"
-            CLEAN_LOG="$CLEAN_LOG"
-            CLEAN_LOG_DONE="$CLEAN_LOG_DONE"
+            CLEAN_LOG="清理系统日志..."
+            CLEAN_LOG_DONE="系统日志清理完成"
             CLEAN_AFTER="清理后可用空间"
-            CLEAN_DONE="$CLEAN_DONE"
+            CLEAN_DONE="系统清理完成！"
             DEPLOY_TITLE="已保存的部署信息"
-            DEPLOY_EMPTY="$DEPLOY_EMPTY"
+            DEPLOY_EMPTY="暂无部署信息，部署服务后会自动保存"
             UPDATE_TITLE="检查脚本更新"
             UPDATE_CURRENT="当前版本"
-            UPDATE_CHECKING="$UPDATE_CHECKING"
-            UPDATE_FAIL="$UPDATE_FAIL"
+            UPDATE_CHECKING="检查最新版本..."
+            UPDATE_FAIL="无法检测最新版本，请检查网络连接"
             UPDATE_LATEST="当前已是最新版本"
             UPDATE_FOUND="发现新版本"
             UPDATE_CONFIRM="是否更新到"
@@ -930,162 +1085,23 @@ load_language() {
             DOMAIN_INPUT="请输入域名（如 example.com，不含 www）"
             ACME_TITLE="acme.sh + Cloudflare DNS 申请证书"
             ACME_EMAIL="请输入邮箱地址"
-            ACME_CF_TIP="$ACME_CF_TIP"
-            ACME_CF_GLOBAL="$ACME_CF_GLOBAL"
-            ACME_CF_TOKEN="$ACME_CF_TOKEN"
+            ACME_CF_TIP="建议使用 CF API Token（仅 DNS 编辑权限）而非 Global API Key，权限更小更安全"
+            ACME_CF_GLOBAL="使用 Global API Key（权限较大）"
+            ACME_CF_TOKEN="使用 API Token（推荐，权限更小）"
             ACME_CF_KEY_PROMPT="请输入 Cloudflare Global API Key"
             ACME_CF_EMAIL_PROMPT="请输入 Cloudflare 账号邮箱"
             ACME_CF_TOKEN_PROMPT="请输入 Cloudflare API Token"
             ACME_DOMAIN_PROMPT="请输入要申请证书的主域名（如 example.com）"
-            ACME_ISSUING="$ACME_ISSUING"
-            ACME_DONE="$ACME_DONE"
+            ACME_ISSUING="申请通配符证书中..."
+            ACME_DONE="证书申请完成！"
             ACME_CERT_PATH="证书路径"
             ACME_KEY_PATH="私钥路径"
-            ACME_FAIL="$ACME_FAIL"
+            ACME_FAIL="证书申请失败，请检查域名解析和 API Key 是否正确"
             ;;
     esac
 }
 
-
-# ============================================================
-# 工具函数
-# ============================================================
-
-# 打印标题
-print_banner() {
-    clear
-    echo -e "${CYAN}${BOLD}"
-    echo "╔══════════════════════════════════════════╗"
-    echo "║         $BANNER_TITLE              ║"
-    echo "║              v${SCRIPT_VERSION}                       ║"
-    echo "╚══════════════════════════════════════════╝"
-    echo -e "${NC}"
-}
-
-# 打印分隔线
-print_line() {
-    echo -e "${BLUE}──────────────────────────────────────────${NC}"
-}
-
-# 成功提示
-success() { echo -e "${GREEN}✅ $1${NC}"; }
-
-# 错误提示
-error() { echo -e "${RED}❌ $1${NC}"; }
-
-# 警告提示
-warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-
-# 信息提示
-info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
-
-# 安全提示
-security_tip() { echo -e "${PURPLE}🔒 安全提示：$1${NC}"; }
-
-# 确认操作
-confirm() {
-    read -p "$(echo -e ${YELLOW}"$1 $MSG_CONFIRM_YN："${NC})" CONFIRM
-    [ "$CONFIRM" = "y" ] || [ "$CONFIRM" = "Y" ]
-}
-
-# 生成随机密码
-gen_pass() {
-    tr -dc 'A-Za-z0-9!@#$%^&*' </dev/urandom | head -c 32
-}
-
-# 获取公网 IP
-get_public_ip() {
-    curl -s4 ifconfig.me 2>/dev/null || curl -s4 ip.sb 2>/dev/null || echo "无法获取"
-}
-
-# 保存部署信息
-save_info() {
-    echo "$1" >> /root/deploy_info.txt
-}
-
-# ============================================================
-# 系统检测
-# ============================================================
-detect_os() {
-    if [ -f /etc/os-release ]; then
-        _SAVED_VERSION=$VERSION
-        . /etc/os-release
-        OS_NAME=$ID
-        OS_VER=$VERSION_ID
-        OS_PRETTY=$PRETTY_NAME
-        VERSION=$_SAVED_VERSION
-    else
-        error "无法检测系统版本"
-        exit 1
-    fi
-
-    case $OS_NAME in
-        debian|ubuntu)
-            PKG_MANAGER="apt"
-            PKG_UPDATE="apt update -y"
-            PKG_INSTALL="apt install -y"
-            FIREWALL="ufw"
-            ;;
-        centos|rhel|almalinux|rocky)
-            if command -v dnf >/dev/null 2>&1; then
-                PKG_MANAGER="dnf"
-                PKG_UPDATE="dnf update -y"
-                PKG_INSTALL="dnf install -y"
-            else
-                PKG_MANAGER="yum"
-                PKG_UPDATE="yum update -y"
-                PKG_INSTALL="yum install -y"
-            fi
-            FIREWALL="firewalld"
-            ;;
-        fedora)
-            PKG_MANAGER="dnf"
-            PKG_UPDATE="dnf update -y"
-            PKG_INSTALL="dnf install -y"
-            FIREWALL="firewalld"
-            ;;
-        alpine)
-            PKG_MANAGER="apk"
-            PKG_UPDATE="apk update"
-            PKG_INSTALL="apk add"
-            FIREWALL="iptables"
-            ;;
-        *)
-            warning "未经测试的系统：$OS_PRETTY，将尝试继续..."
-            PKG_MANAGER="apt"
-            PKG_UPDATE="apt update -y"
-            PKG_INSTALL="apt install -y"
-            FIREWALL="ufw"
-            ;;
-    esac
-
-    success "检测到系统：$OS_PRETTY"
-}
-
-# 检测已安装组件
-check_installed() {
-    DOCKER_INSTALLED=false
-    NGINX_INSTALLED=false
-    CERTBOT_INSTALLED=false
-    ACME_INSTALLED=false
-    UFW_INSTALLED=false
-    FAIL2BAN_INSTALLED=false
-
-    command -v docker >/dev/null 2>&1 && DOCKER_INSTALLED=true
-    command -v nginx >/dev/null 2>&1 && NGINX_INSTALLED=true
-    command -v certbot >/dev/null 2>&1 && CERTBOT_INSTALLED=true
-    [ -f ~/.acme.sh/acme.sh ] && ACME_INSTALLED=true
-    command -v ufw >/dev/null 2>&1 && UFW_INSTALLED=true
-    command -v fail2ban-server >/dev/null 2>&1 && FAIL2BAN_INSTALLED=true
-}
-
-# 检查 root 权限
-check_root() {
-    if [ "$EUID" -ne 0 ]; then
-        error "请使用 root 权限运行此脚本"
-        exit 1
-    fi
-}
+# ----- modules/init.sh -----
 
 # ============================================================
 # 安装基础依赖
@@ -1117,6 +1133,7 @@ install_deploy_deps() {
     # Docker
     if [ "$DOCKER_INSTALLED" = false ]; then
         info "安装 Docker..."
+        # TODO[v0.3-安全加固]: 第三方脚本 curl|sh，未校验来源/完整性。考虑固定版本或改用发行版仓库。详见 SECURITY.md
         curl -fsSL https://get.docker.com | sh >/dev/null 2>&1
         systemctl enable --now docker >/dev/null 2>&1
         $PKG_INSTALL docker-compose-plugin >/dev/null 2>&1
@@ -1158,138 +1175,6 @@ install_deploy_deps() {
 # 兼容旧调用（部署函数用）
 install_base() {
     install_deploy_deps
-}
-
-# ============================================================
-# 防火墙管理（兼容 UFW 和 firewalld）
-# ============================================================
-fw_allow_port() {
-    local PORT=$1
-    local PROTO=${2:-tcp}
-    case $FIREWALL in
-        ufw)
-            ufw allow $PORT/$PROTO >/dev/null 2>&1
-            ;;
-        firewalld)
-            firewall-cmd --permanent --add-port=$PORT/$PROTO >/dev/null 2>&1
-            firewall-cmd --reload >/dev/null 2>&1
-            ;;
-        iptables)
-            iptables -I INPUT -p $PROTO --dport $PORT -j ACCEPT
-            ;;
-    esac
-}
-
-fw_delete_port() {
-    local PORT=$1
-    local PROTO=${2:-tcp}
-    case $FIREWALL in
-        ufw)
-            ufw delete allow $PORT/$PROTO >/dev/null 2>&1
-            ;;
-        firewalld)
-            firewall-cmd --permanent --remove-port=$PORT/$PROTO >/dev/null 2>&1
-            firewall-cmd --reload >/dev/null 2>&1
-            ;;
-        iptables)
-            iptables -D INPUT -p $PROTO --dport $PORT -j ACCEPT
-            ;;
-    esac
-}
-
-fw_enable() {
-    case $FIREWALL in
-        ufw)
-            ufw --force enable >/dev/null 2>&1
-            ;;
-        firewalld)
-            systemctl enable --now firewalld >/dev/null 2>&1
-            ;;
-    esac
-}
-
-fw_status() {
-    case $FIREWALL in
-        ufw)
-            ufw status verbose
-            ;;
-        firewalld)
-            firewall-cmd --list-all
-            ;;
-        iptables)
-            iptables -L INPUT --line-numbers
-            ;;
-    esac
-}
-
-# ============================================================
-# Nginx 配置函数
-# ============================================================
-setup_nginx_proxy() {
-    local DOMAIN=$1
-    local PORT=$2
-    local CONF_DIR
-
-    case $PKG_MANAGER in
-        apt)
-            CONF_DIR="/etc/nginx/sites-available"
-            mkdir -p /etc/nginx/sites-enabled
-            ;;
-        yum|dnf|apk)
-            CONF_DIR="/etc/nginx/conf.d"
-            ;;
-    esac
-
-    cat > $CONF_DIR/$DOMAIN << EOF
-server {
-    listen 80;
-    server_name $DOMAIN www.$DOMAIN;
-    location / {
-        proxy_pass http://127.0.0.1:$PORT;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_read_timeout 300;
-        proxy_connect_timeout 300;
-    }
-}
-EOF
-
-    # Debian/Ubuntu 需要创建软链接
-    if [ "$PKG_MANAGER" = "apt" ]; then
-        rm -f /etc/nginx/sites-enabled/$DOMAIN
-        ln -s $CONF_DIR/$DOMAIN /etc/nginx/sites-enabled/$DOMAIN
-    fi
-
-    nginx -t >/dev/null 2>&1 && systemctl reload nginx >/dev/null 2>&1
-    success "Nginx 反代配置完成"
-}
-
-# 申请证书
-setup_cert() {
-    local DOMAIN=$1
-    certbot --nginx -d $DOMAIN -d www.$DOMAIN \
-        --non-interactive --agree-tos \
-        -m admin@$DOMAIN 2>/dev/null
-    if [ $? -eq 0 ]; then
-        success "SSL 证书申请成功"
-    else
-        warning "SSL 证书申请失败，请检查域名解析是否生效"
-    fi
-}
-
-# 询问域名
-ask_domain() {
-    local SERVICE=$1
-    echo ""
-    read -p "$(echo -e ${YELLOW}"$DOMAIN_PROMPT："${NC})" HAS_DOMAIN
-    if [ "$HAS_DOMAIN" = "y" ] || [ "$HAS_DOMAIN" = "Y" ]; then
-        read -p "$DOMAIN_INPUT：" INPUT_DOMAIN
-        echo $INPUT_DOMAIN
-    else
-        echo ""
-    fi
 }
 
 # ============================================================
@@ -1364,6 +1249,7 @@ init_vps() {
     fi
 
     # DNS 优化
+    # TODO[v0.3-安全加固]: 直接覆盖 /etc/resolv.conf，会丢失原有配置且可能被 systemd-resolved/NetworkManager 还原。考虑先备份并检测托管方式。详见 SECURITY.md
     echo -e "nameserver 8.8.8.8\nnameserver 1.1.1.1" > /etc/resolv.conf
     success "DNS 已优化（Google + Cloudflare）"
 
@@ -1383,6 +1269,7 @@ init_vps() {
     case $FIREWALL in
         ufw)
             $PKG_INSTALL ufw >/dev/null 2>&1
+            # TODO[v0.3-安全加固]: ufw --force reset 会清空所有已有规则。若用户已有自定义规则会被无声删除，建议改为增量配置或先确认。详见 SECURITY.md
             ufw --force reset >/dev/null 2>&1
             ufw default deny incoming >/dev/null 2>&1
             ufw default allow outgoing >/dev/null 2>&1
@@ -1425,6 +1312,7 @@ EOF
     if [ "$SSH_PORT" != "$CURRENT_SSH_PORT" ]; then
         security_tip "修改 SSH 端口前请确认防火墙已放行新端口 $SSH_PORT"
         if confirm "确认修改 SSH 端口为 $SSH_PORT？"; then
+            # TODO[v0.3-安全加固]: 直接 sed 改 sshd_config 有锁死风险（端口未放行/配置语法错误）。建议改端口后 sshd -t 校验，并保留回滚窗口。详见 SECURITY.md
             cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
             sed -i "s/^#\?Port .*/Port $SSH_PORT/g" /etc/ssh/sshd_config
             systemctl restart ssh 2>/dev/null || systemctl restart sshd 2>/dev/null
@@ -1437,6 +1325,258 @@ EOF
     success "VPS 初始化加固完成！"
     echo ""
 }
+
+# ----- modules/firewall.sh -----
+
+# ============================================================
+# 防火墙管理（兼容 UFW 和 firewalld）
+# ============================================================
+fw_allow_port() {
+    local PORT=$1
+    local PROTO=${2:-tcp}
+    case $FIREWALL in
+        ufw)
+            ufw allow $PORT/$PROTO >/dev/null 2>&1
+            ;;
+        firewalld)
+            firewall-cmd --permanent --add-port=$PORT/$PROTO >/dev/null 2>&1
+            firewall-cmd --reload >/dev/null 2>&1
+            ;;
+        iptables)
+            iptables -I INPUT -p $PROTO --dport $PORT -j ACCEPT
+            ;;
+    esac
+}
+
+fw_delete_port() {
+    local PORT=$1
+    local PROTO=${2:-tcp}
+    case $FIREWALL in
+        ufw)
+            ufw delete allow $PORT/$PROTO >/dev/null 2>&1
+            ;;
+        firewalld)
+            firewall-cmd --permanent --remove-port=$PORT/$PROTO >/dev/null 2>&1
+            firewall-cmd --reload >/dev/null 2>&1
+            ;;
+        iptables)
+            iptables -D INPUT -p $PROTO --dport $PORT -j ACCEPT
+            ;;
+    esac
+}
+
+fw_enable() {
+    case $FIREWALL in
+        ufw)
+            ufw --force enable >/dev/null 2>&1
+            ;;
+        firewalld)
+            systemctl enable --now firewalld >/dev/null 2>&1
+            ;;
+    esac
+}
+
+fw_status() {
+    case $FIREWALL in
+        ufw)
+            ufw status verbose
+            ;;
+        firewalld)
+            firewall-cmd --list-all
+            ;;
+        iptables)
+            iptables -L INPUT --line-numbers
+            ;;
+    esac
+}
+
+# ============================================================
+# 7. 防火墙管理
+# ============================================================
+firewall_menu() {
+    while true; do
+        print_banner
+        echo -e "${BOLD}=== $FW_TITLE ===${NC}\n"
+        echo "1. 查看当前规则"
+        echo "2. 添加放行端口"
+        echo "3. 删除端口规则"
+        echo "4. 查看防火墙状态"
+        echo "0. 返回主菜单"
+        print_line
+        read -p "请选择 [0-4]：" FW_CHOICE
+
+        case $FW_CHOICE in
+            1) fw_status ;;
+            2)
+                read -p "$FW_PORT_PROMPT：" FW_PORT
+                read -p "$FW_PROTO_PROMPT：" FW_PROTO
+                FW_PROTO=${FW_PROTO:-tcp}
+                fw_allow_port $FW_PORT $FW_PROTO
+                success "端口 $FW_PORT/$FW_PROTO 已放行"
+                ;;
+            3)
+                read -p "请输入要删除的端口：" FW_PORT
+                read -p "协议 (tcp/udp，默认 tcp)：" FW_PROTO
+                FW_PROTO=${FW_PROTO:-tcp}
+                fw_delete_port $FW_PORT $FW_PROTO
+                success "端口 $FW_PORT/$FW_PROTO 规则已删除"
+                ;;
+            4) fw_status ;;
+            0) break ;;
+            *) error "无效选项" ;;
+        esac
+        echo ""
+        read -p "按回车键继续..."
+    done
+}
+
+# ----- modules/cert.sh -----
+
+# ============================================================
+# Nginx 配置函数
+# ============================================================
+setup_nginx_proxy() {
+    local DOMAIN=$1
+    local PORT=$2
+    local CONF_DIR
+
+    case $PKG_MANAGER in
+        apt)
+            CONF_DIR="/etc/nginx/sites-available"
+            mkdir -p /etc/nginx/sites-enabled
+            ;;
+        yum|dnf|apk)
+            CONF_DIR="/etc/nginx/conf.d"
+            ;;
+    esac
+
+    cat > $CONF_DIR/$DOMAIN << EOF
+server {
+    listen 80;
+    server_name $DOMAIN www.$DOMAIN;
+    location / {
+        proxy_pass http://127.0.0.1:$PORT;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 300;
+        proxy_connect_timeout 300;
+    }
+}
+EOF
+
+    # Debian/Ubuntu 需要创建软链接
+    if [ "$PKG_MANAGER" = "apt" ]; then
+        rm -f /etc/nginx/sites-enabled/$DOMAIN
+        ln -s $CONF_DIR/$DOMAIN /etc/nginx/sites-enabled/$DOMAIN
+    fi
+
+    nginx -t >/dev/null 2>&1 && systemctl reload nginx >/dev/null 2>&1
+    success "Nginx 反代配置完成"
+}
+
+# 申请证书
+setup_cert() {
+    local DOMAIN=$1
+    certbot --nginx -d $DOMAIN -d www.$DOMAIN \
+        --non-interactive --agree-tos \
+        -m admin@$DOMAIN 2>/dev/null
+    if [ $? -eq 0 ]; then
+        success "SSL 证书申请成功"
+    else
+        warning "SSL 证书申请失败，请检查域名解析是否生效"
+    fi
+}
+
+# 询问域名
+ask_domain() {
+    local SERVICE=$1
+    echo ""
+    read -p "$(echo -e ${YELLOW}"$DOMAIN_PROMPT："${NC})" HAS_DOMAIN
+    if [ "$HAS_DOMAIN" = "y" ] || [ "$HAS_DOMAIN" = "Y" ]; then
+        read -p "$DOMAIN_INPUT：" INPUT_DOMAIN
+        echo $INPUT_DOMAIN
+    else
+        echo ""
+    fi
+}
+
+
+# ============================================================
+# 5. 为面板申请域名证书（acme.sh + CF DNS）
+# ============================================================
+setup_acme_cert() {
+    print_banner
+    echo -e "${BOLD}=== $ACME_TITLE ===${NC}\n"
+
+    # 安装 acme.sh
+    if [ "$ACME_INSTALLED" = false ]; then
+        read -p "$ACME_EMAIL：" ACME_EMAIL_INPUT; ACME_EMAIL=$ACME_EMAIL_INPUT
+        # TODO[v0.3-安全加固]: 第三方脚本 curl|sh，未校验来源/完整性。详见 SECURITY.md
+        curl https://get.acme.sh | sh -s email=$ACME_EMAIL >/dev/null 2>&1
+        source ~/.bashrc
+        ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt >/dev/null 2>&1
+        ACME_INSTALLED=true
+        success "acme.sh 已安装"
+    else
+        success "acme.sh 已安装，跳过"
+    fi
+
+    # CF API Key
+    # TODO[v0.3-安全加固]: CF 凭据通过 export 进入环境并可能落入 ~/.acme.sh 配置。避免回显、避免写入日志，使用最小权限 Token。详见 SECURITY.md
+    security_tip "建议使用 CF API Token（仅 DNS 编辑权限）而非 Global API Key，权限更小更安全"
+    echo ""
+    echo "1. 使用 Global API Key（权限较大）"
+    echo "2. 使用 API Token（推荐，权限更小）"
+    read -p "请选择 [1-2，默认 2]：" CF_AUTH_TYPE
+    CF_AUTH_TYPE=${CF_AUTH_TYPE:-2}
+
+    if [ "$CF_AUTH_TYPE" = "1" ]; then
+        read -p "$ACME_CF_KEY_PROMPT：" CF_KEY_INPUT
+        read -p "$ACME_CF_EMAIL_PROMPT：" CF_EMAIL_INPUT
+        export CF_Key="$CF_KEY_INPUT"
+        export CF_Email="$CF_EMAIL_INPUT"
+    else
+        read -p "$ACME_CF_TOKEN_PROMPT：" CF_TOKEN_INPUT
+        export CF_Token="$CF_TOKEN_INPUT"
+    fi
+
+    read -p "$ACME_DOMAIN_PROMPT：" CERT_DOMAIN
+
+    info "申请通配符证书中..."
+    ~/.acme.sh/acme.sh --issue --dns dns_cf \
+        -d $CERT_DOMAIN \
+        -d *.$CERT_DOMAIN \
+        --force 2>/dev/null
+
+    if [ $? -eq 0 ]; then
+        mkdir -p /root/cert/$CERT_DOMAIN
+        ~/.acme.sh/acme.sh --install-cert -d $CERT_DOMAIN \
+            --key-file /root/cert/$CERT_DOMAIN/private.key \
+            --fullchain-file /root/cert/$CERT_DOMAIN/cert.crt \
+            --reloadcmd "x-ui restart 2>/dev/null; nginx -s reload 2>/dev/null; true"
+        chmod -R 755 /root/cert
+
+        save_info "
+=== acme.sh 证书 ===
+域名：$CERT_DOMAIN
+证书路径：/root/cert/$CERT_DOMAIN/cert.crt
+私钥路径：/root/cert/$CERT_DOMAIN/private.key
+申请时间：$(date)"
+
+        print_line
+        success "证书申请完成！"
+        info "$ACME_CERT_PATH：/root/cert/$CERT_DOMAIN/cert.crt"
+        info "$ACME_KEY_PATH：/root/cert/$CERT_DOMAIN/private.key"
+    else
+        error "证书申请失败，请检查域名解析和 API Key 是否正确"
+    fi
+    echo ""
+}
+
+# ----- modules/deploy_wordpress.sh -----
+
 
 
 # ============================================================
@@ -1578,6 +1718,7 @@ uninstall_wordpress() {
     success "容器已停止"
 
     if confirm "是否同时删除所有数据（数据库、文章、媒体文件）？"; then
+        # TODO[v0.3-安全加固]: docker compose down -v 删除数据卷 + rm -rf /opt/wordpress 不可逆。建议删除前强制本地备份。详见 SECURITY.md
         cd /opt/wordpress && docker compose down -v >/dev/null 2>&1
         rm -rf /opt/wordpress
         success "数据已删除"
@@ -1599,6 +1740,9 @@ uninstall_wordpress() {
     echo ""
     read -p "按回车键继续..."
 }
+
+# ----- modules/deploy_xboard.sh -----
+
 
 
 
@@ -1757,6 +1901,7 @@ uninstall_xboard() {
     success "容器已停止"
 
     if confirm "是否同时删除所有数据（数据库、用户数据）？"; then
+        # TODO[v0.3-安全加固]: docker compose down -v 删除数据卷 + rm -rf /opt/xboard 不可逆。建议删除前强制本地备份。详见 SECURITY.md
         cd /opt/xboard && docker compose down -v >/dev/null 2>&1
         rm -rf /opt/xboard
         success "数据已删除"
@@ -1778,6 +1923,9 @@ uninstall_xboard() {
     echo ""
     read -p "按回车键继续..."
 }
+
+# ----- modules/deploy_3xui.sh -----
+
 
 # ============================================================
 # 4. 3x-ui 菜单
@@ -1828,6 +1976,7 @@ deploy_3xui() {
     fi
 
     info "调用 3x-ui 官方安装脚本..."
+    # TODO[v0.3-安全加固]: 第三方脚本 bash <(curl ...) 直接执行，未固定版本/未校验。详见 SECURITY.md
     bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
 
     print_line
@@ -1852,6 +2001,7 @@ uninstall_3xui() {
         return
     fi
 
+    # TODO[v0.3-安全加固]: 卸载回退到第三方 bash <(curl ...)，同样未校验。详见 SECURITY.md
     x-ui uninstall 2>/dev/null || bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh) uninstall
 
     success "3x-ui 已卸载完成"
@@ -1859,76 +2009,8 @@ uninstall_3xui() {
     read -p "按回车键继续..."
 }
 
+# ----- modules/security.sh -----
 
-# ============================================================
-# 5. 为面板申请域名证书（acme.sh + CF DNS）
-# ============================================================
-setup_acme_cert() {
-    print_banner
-    echo -e "${BOLD}=== $ACME_TITLE ===${NC}\n"
-
-    # 安装 acme.sh
-    if [ "$ACME_INSTALLED" = false ]; then
-        read -p "$ACME_EMAIL：" ACME_EMAIL_INPUT; ACME_EMAIL=$ACME_EMAIL_INPUT
-        curl https://get.acme.sh | sh -s email=$ACME_EMAIL >/dev/null 2>&1
-        source ~/.bashrc
-        ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt >/dev/null 2>&1
-        ACME_INSTALLED=true
-        success "acme.sh 已安装"
-    else
-        success "acme.sh 已安装，跳过"
-    fi
-
-    # CF API Key
-    security_tip "建议使用 CF API Token（仅 DNS 编辑权限）而非 Global API Key，权限更小更安全"
-    echo ""
-    echo "1. 使用 Global API Key（权限较大）"
-    echo "2. 使用 API Token（推荐，权限更小）"
-    read -p "请选择 [1-2，默认 2]：" CF_AUTH_TYPE
-    CF_AUTH_TYPE=${CF_AUTH_TYPE:-2}
-
-    if [ "$CF_AUTH_TYPE" = "1" ]; then
-        read -p "$ACME_CF_KEY_PROMPT：" CF_KEY_INPUT
-        read -p "$ACME_CF_EMAIL_PROMPT：" CF_EMAIL_INPUT
-        export CF_Key="$CF_KEY_INPUT"
-        export CF_Email="$CF_EMAIL_INPUT"
-    else
-        read -p "$ACME_CF_TOKEN_PROMPT：" CF_TOKEN_INPUT
-        export CF_Token="$CF_TOKEN_INPUT"
-    fi
-
-    read -p "$ACME_DOMAIN_PROMPT：" CERT_DOMAIN
-
-    info "申请通配符证书中..."
-    ~/.acme.sh/acme.sh --issue --dns dns_cf \
-        -d $CERT_DOMAIN \
-        -d *.$CERT_DOMAIN \
-        --force 2>/dev/null
-
-    if [ $? -eq 0 ]; then
-        mkdir -p /root/cert/$CERT_DOMAIN
-        ~/.acme.sh/acme.sh --install-cert -d $CERT_DOMAIN \
-            --key-file /root/cert/$CERT_DOMAIN/private.key \
-            --fullchain-file /root/cert/$CERT_DOMAIN/cert.crt \
-            --reloadcmd "x-ui restart 2>/dev/null; nginx -s reload 2>/dev/null; true"
-        chmod -R 755 /root/cert
-
-        save_info "
-=== acme.sh 证书 ===
-域名：$CERT_DOMAIN
-证书路径：/root/cert/$CERT_DOMAIN/cert.crt
-私钥路径：/root/cert/$CERT_DOMAIN/private.key
-申请时间：$(date)"
-
-        print_line
-        success "证书申请完成！"
-        info "$ACME_CERT_PATH：/root/cert/$CERT_DOMAIN/cert.crt"
-        info "$ACME_KEY_PATH：/root/cert/$CERT_DOMAIN/private.key"
-    else
-        error "证书申请失败，请检查域名解析和 API Key 是否正确"
-    fi
-    echo ""
-}
 
 # ============================================================
 # 6. SSH 安全加固
@@ -1989,6 +2071,7 @@ ssh_disable_password() {
     echo ""
 
     if confirm "确认已验证 Key 登录正常，现在禁用密码登录？"; then
+        # TODO[v0.3-安全加固]: 直接 sed 改 sshd_config 并重启；若公钥无效会锁死服务器。建议 sshd -t 校验 + 回滚窗口。详见 SECURITY.md
         cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
         sed -i 's/^#\?PasswordAuthentication .*/PasswordAuthentication no/g' /etc/ssh/sshd_config
         sed -i 's/^#\?KbdInteractiveAuthentication .*/KbdInteractiveAuthentication no/g' /etc/ssh/sshd_config
@@ -2001,45 +2084,8 @@ ssh_disable_password() {
     echo ""
 }
 
-# ============================================================
-# 7. 防火墙管理
-# ============================================================
-firewall_menu() {
-    while true; do
-        print_banner
-        echo -e "${BOLD}=== $FW_TITLE ===${NC}\n"
-        echo "1. 查看当前规则"
-        echo "2. 添加放行端口"
-        echo "3. 删除端口规则"
-        echo "4. 查看防火墙状态"
-        echo "0. 返回主菜单"
-        print_line
-        read -p "请选择 [0-4]：" FW_CHOICE
+# ----- modules/system_info.sh -----
 
-        case $FW_CHOICE in
-            1) fw_status ;;
-            2)
-                read -p "$FW_PORT_PROMPT：" FW_PORT
-                read -p "$FW_PROTO_PROMPT：" FW_PROTO
-                FW_PROTO=${FW_PROTO:-tcp}
-                fw_allow_port $FW_PORT $FW_PROTO
-                success "端口 $FW_PORT/$FW_PROTO 已放行"
-                ;;
-            3)
-                read -p "请输入要删除的端口：" FW_PORT
-                read -p "协议 (tcp/udp，默认 tcp)：" FW_PROTO
-                FW_PROTO=${FW_PROTO:-tcp}
-                fw_delete_port $FW_PORT $FW_PROTO
-                success "端口 $FW_PORT/$FW_PROTO 规则已删除"
-                ;;
-            4) fw_status ;;
-            0) break ;;
-            *) error "无效选项" ;;
-        esac
-        echo ""
-        read -p "按回车键继续..."
-    done
-}
 
 # ============================================================
 # 8. 系统信息与检测
@@ -2149,6 +2195,7 @@ show_hardware_info() {
 check_streaming() {
     echo -e "\n${BOLD}=== 流媒体解锁检测 ===${NC}\n"
     info "调用 RegionRestrictionCheck..."
+    # TODO[v0.3-安全加固]: 第三方检测脚本 bash <(curl ...)，未校验来源。详见 SECURITY.md
     bash <(curl -L -s https://raw.githubusercontent.com/1-stream/RegionRestrictionCheck/main/check.sh)
 }
 
@@ -2158,6 +2205,7 @@ check_route() {
     # 安装 nexttrace
     if ! command -v nexttrace >/dev/null 2>&1; then
         info "安装 nexttrace..."
+        # TODO[v0.3-安全加固]: 第三方脚本 curl|bash，未校验来源。详见 SECURITY.md
         curl -sL https://github.com/nxtrace/NTrace-core/raw/main/nt_install.sh | bash >/dev/null 2>&1
     fi
 
@@ -2183,6 +2231,7 @@ check_speed() {
         $PKG_INSTALL speedtest-cli >/dev/null 2>&1
     fi
 
+    # TODO[v0.3-安全加固]: 回退执行第三方 speedtest.py（curl|python3），未校验来源。详见 SECURITY.md
     speedtest 2>/dev/null || curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python3 -
 }
 
@@ -2191,10 +2240,14 @@ check_ip_quality() {
     SERVER_IP=$(get_public_ip)
     info "检测 IP：$SERVER_IP"
     echo ""
+    # TODO[v0.3-安全加固]: 将本机 IP 提交给第三方服务（ip.check.place / ipinfo.io）进行查询，注意隐私。详见 SECURITY.md
     curl -s https://ip.check.place 2>/dev/null || \
     curl -s "https://ipinfo.io/$SERVER_IP/json" 2>/dev/null | python3 -m json.tool 2>/dev/null || \
         info "请访问 https://ip.check.place 手动检测"
 }
+
+# ----- modules/docker.sh -----
+
 
 # ============================================================
 # 9. Docker 容器管理
@@ -2270,6 +2323,9 @@ docker_menu() {
         read -p "按回车键继续..."
     done
 }
+
+# ----- modules/backup.sh -----
+
 
 # ============================================================
 # 10. 备份与恢复
@@ -2379,7 +2435,6 @@ setup_auto_backup() {
 
     BACKUP_SCRIPT="/root/auto_backup.sh"
     cat > $BACKUP_SCRIPT << EOF
-#!/bin/bash
 BACKUP_DIR="/root/backup"
 mkdir -p \$BACKUP_DIR
 tar -czf \$BACKUP_DIR/backup_\$(date +%Y%m%d_%H%M%S).tar.gz /opt 2>/dev/null
@@ -2400,6 +2455,9 @@ EOF
     echo ""
 }
 
+# ----- modules/network.sh -----
+
+
 # ============================================================
 # 11. 安装 WARP
 # ============================================================
@@ -2416,6 +2474,7 @@ install_warp() {
     echo ""
 
     if confirm "确认安装 WARP？"; then
+        # TODO[v0.3-安全加固]: 第三方脚本 bash <(curl git.io/warp.sh)，git.io 短链已停用风险 + 未校验来源。详见 SECURITY.md
         bash <(curl -fsSL git.io/warp.sh)
     fi
     echo ""
@@ -2469,6 +2528,7 @@ network_menu() {
                 echo "2. Cloudflare DNS (1.1.1.1 / 1.0.0.1)"
                 echo "3. 自定义 DNS"
                 read -p "请选择 [1-3]：" DNS_CHOICE
+                # TODO[v0.3-安全加固]: 直接覆盖 /etc/resolv.conf，可能被 systemd-resolved/NetworkManager 还原且无备份。详见 SECURITY.md
                 case $DNS_CHOICE in
                     1)
                         echo -e "nameserver 8.8.8.8\nnameserver 8.8.4.4" > /etc/resolv.conf
@@ -2494,6 +2554,9 @@ network_menu() {
         read -p "按回车键继续..."
     done
 }
+
+# ----- modules/cleanup.sh -----
+
 
 # ============================================================
 # 13. 系统清理
@@ -2542,6 +2605,9 @@ system_clean() {
     echo ""
     read -p "按回车键继续..."
 }
+
+# ----- modules/update.sh -----
+
 
 # ============================================================
 # 14. 查看部署信息
@@ -2592,6 +2658,9 @@ check_update() {
     echo ""
     read -p "按回车键继续..."
 }
+
+# ----- modules/menu.sh -----
+
 
 # ============================================================
 # 主菜单
@@ -2666,7 +2735,7 @@ main_menu() {
 }
 
 # ============================================================
-# 入口
+# 入口 / Entry point
 # ============================================================
 check_root
 select_language

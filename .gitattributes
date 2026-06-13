@@ -1,0 +1,9 @@
+# 这些是 Linux 上执行的脚本，必须使用 LF，避免 CRLF 导致执行异常。
+*.sh    text eol=lf
+setup.sh text eol=lf
+build.sh text eol=lf
+
+# 文档保持 LF，跨平台一致
+*.md    text eol=lf
+*.yml   text eol=lf
+LICENSE text eol=lf

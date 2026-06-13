@@ -1,0 +1,29 @@
+# 日志 / 临时文件
+*.log
+*.tmp
+*.bak
+*.swp
+
+# 打包产物 / 发布归档
+*.zip
+*.tar.gz
+dist/
+build/
+releases/
+
+# 机密信息（绝对不要提交）
+.env
+secrets.env
+*.key
+*.pem
+deploy_info.txt
+
+# 备份目录
+backup/
+backups/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

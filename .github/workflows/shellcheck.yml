@@ -1,0 +1,41 @@
+name: ShellCheck
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+      - name: bash -n (syntax gate)
+        run: |
+          set -e
+          for f in setup.sh build.sh lib/*.sh modules/*.sh tests/*.sh; do
+            echo "bash -n $f"
+            bash -n "$f"
+          done
+
+      - name: Verify setup.sh is freshly built from sources
+        run: |
+          cp setup.sh /tmp/_committed_setup.sh
+          bash build.sh
+          if ! diff -q /tmp/_committed_setup.sh setup.sh >/dev/null; then
+            echo "::error::setup.sh 与 lib/ + modules/ 不一致，请运行 'bash build.sh' 后重新提交。"
+            diff /tmp/_committed_setup.sh setup.sh || true
+            exit 1
+          fi
+          echo "setup.sh 与源码一致。"
+
+      - name: ShellCheck (non-blocking, warning+)
+        # 本轮不追求清零；告警仅作报告，不让 CI 失败。
+        continue-on-error: true
+        run: shellcheck --severity=warning setup.sh build.sh lib/*.sh modules/*.sh tests/*.sh
